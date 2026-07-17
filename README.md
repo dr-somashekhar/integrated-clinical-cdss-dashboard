@@ -1,14 +1,14 @@
-# 🏥 Integrated Clinical Decision Support System (CDSS)
+#  Integrated Clinical Decision Support System (CDSS)
 **Cardiometabolic & Hepatic Risk Prediction Dashboard for Type 2 Diabetes**
 
-## 📖 Project Overview
+##  Project Overview
 This repository contains a production-grade Clinical Decision Support System (CDSS) built using **R Shiny**. The engine is designed to ingest raw patient anthropometric data, lipid panels, and hepatic transaminases to automatically compute advanced metabolic risk indices. 
 
 Developed from clinical data methodologies exploring the association between dyslipidemia and non-alcoholic fatty liver disease (NAFLD) in Type 2 Diabetes Mellitus (T2DM), this tool bridges the gap between raw laboratory values and actionable clinical pharmacovigilance.
 
 ---
 
-## 🧮 Core Computational Engine
+##  Core Computational Engine
 
 The backend logic module programmatically calculates validated clinical equations to stratify patient risk in real-time.
 
@@ -26,7 +26,7 @@ $$ \text{CrCl} = \frac{(140 - \text{Age}) \times \text{Weight (kg)}}{72 \times \
 
 ---
 
-## ⚠️ Pharmacovigilance & Safety Alert Layer
+##  Pharmacovigilance & Safety Alert Layer
 
 The dashboard integrates an automated clinical rules engine that cross-references the computed biomarkers against the patient's active medication list to flag critical interactions:
 
@@ -36,13 +36,13 @@ The dashboard integrates an automated clinical rules engine that cross-reference
 
 ---
 
-## 📊 Population Analytics Architecture
+##  Population Analytics Architecture
 
 The dashboard includes a simulated data pipeline mirroring a 170-patient prospective observational cohort (Cases vs. Controls). It utilizes `ggplot2` and `corrplot` to render:
 *   Pearson Correlation Matrices mapping the mathematical relationships between LDL-C, TG, ALT, and HbA1c.
 *   Linear regression scatter plots mapping dyslipidemia severity against BMI stratifications.
 
-## 🚀 Deployment Instructions
+##  Deployment Instructions
 To run this CDSS locally:
 1. Clone this repository.
 2. Ensure R and RStudio are installed.
