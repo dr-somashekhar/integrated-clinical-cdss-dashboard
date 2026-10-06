@@ -1,0 +1,794 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>PharmaDesk Pro - Training Edition</title>
+<style>
+:root{--blue:#1f4e8c;--blue2:#2f6db5;--lt:#dfe9f5;--lt2:#eef3fa;--bd:#9fb3cc;--gray:#f0f0f0;--red:#c0392b;--grn:#1e8449;--amb:#b9770e}
+*{box-sizing:border-box}
+html,body{height:100%;margin:0;font:12px/1.35 "Segoe UI",Tahoma,Arial,sans-serif;color:#1b1b1b;background:#c9d5e6;overflow:hidden}
+button,input,select,textarea{font:inherit}
+button{border:1px solid #8a9bb3;background:linear-gradient(#fdfdfd,#dde5f0);border-radius:3px;padding:3px 10px;cursor:pointer;color:#111}
+button:hover{background:linear-gradient(#fff,#cfdcee);border-color:var(--blue2)}
+button:active{background:#c2d2e8}
+button.p{background:linear-gradient(#4a88d0,#2a60a3);color:#fff;border-color:#1b4a85}
+button.p:hover{background:linear-gradient(#5b97de,#2f6db5)}
+button.d{background:linear-gradient(#e9867a,#c0392b);color:#fff;border-color:#8e2a20}
+button:disabled{opacity:.5;cursor:not-allowed}
+input,select,textarea{border:1px solid #8fa3bf;border-radius:2px;padding:3px 5px;background:#fff;min-width:0}
+input:focus,select:focus,textarea:focus{outline:2px solid #ffd66b;border-color:#c59a1a;background:#fffef2}
+input[readonly]{background:#eef0f3}
+/* login */
+#login{position:fixed;inset:0;background:radial-gradient(circle at 30% 20%,#3b78c4,#12335f);display:flex;align-items:center;justify-content:center;z-index:50}
+.lbox{width:380px;background:#fff;border-radius:6px;box-shadow:0 12px 40px #0008;overflow:hidden}
+.lbox h1{margin:0;padding:18px 22px;background:linear-gradient(#2f6db5,#1f4e8c);color:#fff;font-size:20px}
+.lbox h1 small{display:block;font-size:11px;font-weight:400;opacity:.85}
+.lbox .b{padding:18px 22px}.lbox label{display:block;margin:8px 0 2px;font-weight:600}.lbox input,.lbox select{width:100%;padding:6px}
+.lbox .tr{background:#fff3cd;border:1px solid #e0c36a;padding:6px 8px;margin-top:12px;font-size:11px}
+/* app shell */
+#app{position:fixed;inset:0;display:flex;flex-direction:column;background:#fff}
+#tbar{background:linear-gradient(#2f6db5,#1f4e8c);color:#fff;display:flex;align-items:center;padding:3px 8px;gap:8px;font-weight:600}
+#tbar .sp{flex:1}.wc span{display:inline-block;width:26px;text-align:center;cursor:default}.wc span:hover{background:#ffffff33}.wc span:last-child:hover{background:#c0392b}
+#trn{background:#b03a2e;color:#fff;text-align:center;font-weight:700;letter-spacing:.5px;padding:2px;font-size:11px}
+#menu{background:linear-gradient(#f7f9fc,#dbe4f1);border-bottom:1px solid var(--bd);display:flex;position:relative;z-index:20}
+#menu>div{padding:4px 12px;cursor:default;position:relative}
+#menu>div:hover,#menu>div.open{background:#b9d0ee}
+.dd{position:absolute;left:0;top:100%;background:#fff;border:1px solid #7f93b0;box-shadow:3px 3px 8px #0004;min-width:230px;display:none;padding:2px 0}
+#menu>div.open .dd{display:block}
+.dd div{padding:4px 14px;display:flex;justify-content:space-between;gap:24px;white-space:nowrap}
+.dd div:hover{background:#2f6db5;color:#fff}.dd i{color:#789;font-style:normal;font-size:11px}.dd div:hover i{color:#dce}
+.dd hr{border:0;border-top:1px solid #d5dbe6;margin:3px 0}
+#tool{display:flex;gap:2px;padding:4px 6px;background:linear-gradient(#fff,#e6edf7);border-bottom:1px solid var(--bd);flex-wrap:wrap}
+#tool button{display:flex;flex-direction:column;align-items:center;min-width:64px;padding:3px 6px;border-color:transparent;background:none;font-size:11px}
+#tool button span{font-size:20px;line-height:22px}
+#tool button:hover{border-color:var(--bd);background:#d4e3f6}
+#tool .sep{width:1px;background:var(--bd);margin:2px 4px}
+#tabs{display:flex;background:#cfd9e8;padding:3px 4px 0;gap:2px;overflow-x:auto;min-height:26px}
+.tab{padding:3px 8px;background:#e5ebf4;border:1px solid var(--bd);border-bottom:0;border-radius:4px 4px 0 0;cursor:pointer;white-space:nowrap;display:flex;gap:8px}
+.tab.on{background:#fff;font-weight:600}.tab b{color:#789;cursor:pointer}.tab b:hover{color:var(--red)}
+#desk{flex:1;overflow:hidden;position:relative;background:#fff}
+.win{position:absolute;inset:0;overflow:auto;padding:8px;display:none;background:#f6f8fb}
+.win.on{display:block}
+#hint{background:#fffbe6;border-top:1px solid #e3d489;padding:3px 10px;min-height:22px;color:#5a4a00}
+#stat{background:linear-gradient(#e4ebf5,#cbd7e8);border-top:1px solid var(--bd);display:flex;gap:16px;padding:2px 10px;font-size:11px}
+#stat .sp{flex:1}
+/* forms */
+fieldset{border:1px solid var(--bd);background:#fff;border-radius:3px;margin:0 0 8px;padding:6px 10px 8px}
+legend{color:var(--blue);font-weight:700;padding:0 4px}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+@media(max-width:900px){.two{grid-template-columns:1fr}}
+.row{display:flex;gap:6px;align-items:center;margin:3px 0;flex-wrap:wrap}
+.row>label{width:92px;font-weight:600;color:#234}
+.row .wide{flex:1;min-width:140px}
+.info{background:var(--lt2);border:1px solid #cdd9ea;padding:4px 7px;border-radius:2px;min-height:22px;color:#234}
+.info .al{color:var(--red);font-weight:700}
+.grid-wrap{background:#fff;border:1px solid var(--bd);overflow:auto;max-height:46vh}
+table.grid{border-collapse:collapse;width:100%}
+table.grid th{background:linear-gradient(#f4f7fb,#d3deee);border:1px solid var(--bd);padding:3px 6px;text-align:left;position:sticky;top:0;white-space:nowrap;z-index:1}
+table.grid td{border:1px solid #d4dce8;padding:1px 3px;white-space:nowrap}
+table.grid tbody tr:nth-child(even){background:#f5f8fc}
+table.grid tbody tr:hover{background:#e1ecfa}
+table.grid tbody tr.sel{background:#2f6db5!important;color:#fff}
+table.grid td input,table.grid td select{width:100%;border-color:transparent;background:transparent;padding:2px 3px}
+table.grid td input:focus{background:#fffef2;border-color:#c59a1a}
+table.grid .n{text-align:right;width:70px}table.grid .r{text-align:right}table.grid .c{text-align:center}
+.del{color:#a33;cursor:pointer;padding:0 5px}
+.tb2{display:flex;gap:6px;margin-bottom:6px;align-items:center;flex-wrap:wrap}
+.tb2 .srch{width:260px}
+.bdg{display:inline-block;padding:0 6px;border-radius:8px;font-size:11px;color:#fff;background:#789}
+.bdg.g{background:var(--grn)}.bdg.r{background:var(--red)}.bdg.a{background:var(--amb)}.bdg.b{background:var(--blue2)}
+.bar{display:flex;gap:10px;align-items:stretch;margin-top:8px;flex-wrap:wrap}
+.alerts{flex:1;min-width:300px;background:#fff;border:1px solid var(--bd);padding:4px 8px;max-height:130px;overflow:auto}
+.alerts div{padding:2px 0}.alerts .err{color:var(--red);font-weight:600}.alerts .warn{color:var(--amb)}.alerts .ok{color:var(--grn)}
+.tot{background:#fff;border:1px solid var(--bd);padding:6px 12px;min-width:250px}
+.tot div{display:flex;justify-content:space-between;gap:20px}
+.tot .net{font-size:18px;font-weight:700;color:var(--blue);border-top:1px solid var(--bd);margin-top:4px;padding-top:4px}
+.acts{display:flex;flex-direction:column;gap:4px;justify-content:center}.acts button{min-width:120px;padding:5px 10px}
+/* dashboard */
+.tiles{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:10px;margin-bottom:12px}
+.tile{background:#fff;border:1px solid var(--bd);border-left:5px solid var(--blue2);padding:10px 12px;border-radius:3px;cursor:pointer}
+.tile:hover{background:#eef5ff}.tile b{display:block;font-size:24px;color:var(--blue)}.tile.r{border-left-color:var(--red)}.tile.a{border-left-color:var(--amb)}.tile.g{border-left-color:var(--grn)}
+.quick{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:12px}
+.quick button{width:130px;height:78px;font-size:12px;font-weight:600}.quick button span{display:block;font-size:26px}
+h3{margin:4px 0 6px;color:var(--blue)}
+/* dialog */
+.mo{position:fixed;inset:0;background:#0006;display:flex;align-items:center;justify-content:center;z-index:100}
+.dlg{background:#f0f0f0;border:1px solid #1f4e8c;box-shadow:0 10px 40px #0007;min-width:340px;max-width:96vw;max-height:94vh;display:flex;flex-direction:column}
+.dh{background:linear-gradient(#2f6db5,#1f4e8c);color:#fff;padding:4px 8px;display:flex;justify-content:space-between;font-weight:600}
+.dh b{cursor:pointer;padding:0 4px}.dh b:hover{background:var(--red)}
+.db{padding:10px 12px;overflow:auto}
+.df{padding:8px 12px;display:flex;justify-content:flex-end;gap:8px;background:#e4e4e4;border-top:1px solid #c5c5c5}
+.dlg .row>label{width:110px}
+.msgi{font-size:30px;margin-right:12px}
+.label{border:2px dashed #333;background:#fff;width:330px;padding:8px 10px;margin:6px;display:inline-block;vertical-align:top;font-size:12px}
+.label h4{margin:0 0 4px;text-align:center;border-bottom:1px solid #333;padding-bottom:3px}
+.label .dn{font-size:14px;font-weight:700;margin:4px 0}
+.inv{background:#fff;padding:10px;width:560px;font-family:"Courier New",monospace;font-size:12px}
+.inv h4{text-align:center;margin:0}.inv table{width:100%;border-collapse:collapse}.inv td,.inv th{padding:1px 3px;text-align:left}.inv .r{text-align:right}.inv hr{border:0;border-top:1px dashed #000}
+.rep{background:#fff;padding:12px;border:1px solid var(--bd)}
+.rep h4{margin:0 0 2px;text-align:center}.rep p{margin:0 0 8px;text-align:center;color:#555}
+.rep table{width:100%;border-collapse:collapse}.rep th,.rep td{border:1px solid #bbb;padding:2px 5px;text-align:left}.rep th{background:#e8eef7}.rep .r{text-align:right}
+.split{display:grid;grid-template-columns:200px 1fr;gap:8px}
+.list div{padding:5px 8px;border-bottom:1px solid #dde;cursor:pointer;background:#fff}.list div:hover{background:#e1ecfa}.list div.on{background:#2f6db5;color:#fff}
+#ac{position:fixed;display:none;background:#fff;border:1px solid #1f4e8c;box-shadow:3px 3px 8px #0005;z-index:200;max-height:260px;overflow:auto}
+.ac-i{padding:3px 8px;cursor:pointer;border-bottom:1px solid #eef;white-space:nowrap}.ac-i.on,.ac-i:hover{background:#2f6db5;color:#fff}
+.ac-i small{opacity:.75;margin-left:8px}
+.ex{background:#fff;border:1px solid var(--bd);border-radius:3px;padding:8px 10px;margin-bottom:6px;display:flex;gap:10px;align-items:flex-start}
+.ex.done{background:#eaf6ee}.ex p{margin:2px 0;color:#444}
+@media print{
+ body *{visibility:hidden}
+ .printable,.printable *{visibility:visible}
+ .printable{position:fixed!important;left:0;top:0;width:100%!important;max-width:none!important;background:#fff;border:0!important}
+ #trn{display:none}
+}
+</style>
+</head>
+<body>
+
+<div id="login">
+ <div class="lbox">
+  <h1>PharmaDesk Pro<small>Pharmacy Management System &middot; Training Edition v1.0</small></h1>
+  <div class="b">
+   <label>User Name</label><input id="l_user" value="student" autocomplete="off">
+   <label>Password</label><input id="l_pass" type="password" value="" placeholder="(any password works)">
+   <label>Role</label><select id="l_role"><option>Pharmacist</option><option>Pharmacy Technician</option><option>Cashier</option><option>Store Manager</option></select>
+   <label>Store</label><select id="l_store"><option>Sunrise Pharmacy - Main Branch</option><option>Sunrise Pharmacy - City Centre</option></select>
+   <div style="margin-top:14px;text-align:right"><button class="p" id="l_go" style="padding:6px 22px">Login</button></div>
+   <div class="tr">&#9888; TRAINING SIMULATOR. All data is fictional and is stored only in this browser. No internet connection is used, nothing is sent anywhere.</div>
+  </div>
+ </div>
+</div>
+
+<div id="app" hidden>
+ <div id="tbar"><span>&#9877; PharmaDesk Pro 5.2 [Training Edition]</span><span id="tstore" style="font-weight:400"></span><span class="sp"></span><span class="wc"><span title="Minimise">&#8211;</span><span title="Maximise">&#9633;</span><span title="Close" id="wclose">&#10005;</span></span></div>
+ <div id="trn">TRAINING MODE &#8211; DUMMY DATA &#8211; NOT FOR REAL PATIENT CARE OR REAL DISPENSING</div>
+ <div id="menu"></div>
+ <div id="tool"></div>
+ <div id="tabs"></div>
+ <div id="desk"></div>
+ <div id="hint">&#128161; Click any field to see what information goes there.</div>
+ <div id="stat"><span id="s_user"></span><span id="s_store"></span><span class="sp"></span><span>&#9679; Offline (no internet used)</span><span id="s_clock"></span></div>
+</div>
+<div id="ac"></div>
+<datalist id="sigs">
+ <option value="1 tab once daily (OD)"><option value="1 tab twice daily (BD) after food"><option value="1 tab thrice daily (TDS)">
+ <option value="1-0-1 after food"><option value="1-1-1 after food"><option value="0-0-1 at bedtime"><option value="1 cap BD before food">
+ <option value="2 puffs SOS"><option value="1 tab SOS for pain"><option value="Apply locally BD">
+</datalist>
+
+<script>
+"use strict";
+/* ============ helpers ============ */
+const $=(s,e=document)=>e.querySelector(s), $$=(s,e=document)=>[...e.querySelectorAll(s)];
+const esc=s=>String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const m2=n=>(+n||0).toFixed(2), rs=n=>"₹"+m2(n);
+const iso=d=>{const z=new Date(d);return z.getFullYear()+"-"+String(z.getMonth()+1).padStart(2,"0")+"-"+String(z.getDate()).padStart(2,"0")};
+const today=()=>iso(new Date());
+const addDays=n=>{const d=new Date();d.setDate(d.getDate()+n);return iso(d)};
+const fmtD=s=>{if(!s)return"";const[y,m,d]=s.split("-");return d+"/"+m+"/"+y};
+const fmtE=s=>{if(!s)return"";const[y,m]=s.split("-");return m+"/"+y};
+const age=dob=>{if(!dob)return"";const b=new Date(dob),n=new Date();let a=n.getFullYear()-b.getFullYear();if(n<new Date(n.getFullYear(),b.getMonth(),b.getDate()))a--;return a};
+const daysTo=s=>Math.round((new Date(s)-new Date(today()))/864e5);
+const LS="pharmadesk_training_v1";
+
+/* ============ data ============ */
+let DB,USER={name:"student",role:"Pharmacist",store:""};
+function seed(){
+ const D=(id,name,gen,str,form,sched,cls,mrp,gst,rack,ro,b)=>({id,name,gen,str,form,sched,cls,mrp,gst,rack,ro,batches:b.map(([no,d,q,pur])=>({no,exp:addDays(d),qty:q,pur}))});
+ const drugs=[
+ D(1,"Amoxicillin","Amoxicillin","500mg","Capsule","H",["penicillin","antibiotic"],12,12,"A1",100,[["AX2301",420,300,8.2],["AX2407",700,200,8.5]]),
+ D(2,"Amoxicillin + Clavulanate","Amoxicillin","625mg","Tablet","H",["penicillin","antibiotic"],24,12,"A1",60,[["AC9921",300,150,17],["AC1002",25,40,17]]),
+ D(3,"Azithromycin","Azithromycin","500mg","Tablet","H",["macrolide","antibiotic"],22,12,"A2",50,[["AZ551",500,120,15]]),
+ D(4,"Ciprofloxacin","Ciprofloxacin","500mg","Tablet","H",["quinolone","antibiotic"],9,12,"A2",50,[["CP771",380,160,6]]),
+ D(5,"Cefixime","Cefixime","200mg","Tablet","H",["cephalosporin","antibiotic"],18,12,"A2",40,[["CF310",450,90,12]]),
+ D(6,"Metformin SR","Metformin","500mg","Tablet","H",["biguanide","antidiabetic"],3.5,12,"B1",200,[["MF1201",600,600,2],["MF1305",800,400,2.1]]),
+ D(7,"Glimepiride","Glimepiride","2mg","Tablet","H",["sulfonylurea","antidiabetic","sulfa"],6,12,"B1",100,[["GL882",520,250,3.8]]),
+ D(8,"Atorvastatin","Atorvastatin","10mg","Tablet","H",["statin","lipid"],8,12,"B2",100,[["AT118",640,300,4.5]]),
+ D(9,"Atorvastatin","Atorvastatin","20mg","Tablet","H",["statin","lipid"],13,12,"B2",100,[["AT220",640,18,7.5]]),
+ D(10,"Amlodipine","Amlodipine","5mg","Tablet","H",["ccb","antihypertensive"],3,12,"B3",150,[["AM330",700,500,1.4]]),
+ D(11,"Telmisartan","Telmisartan","40mg","Tablet","H",["arb","antihypertensive"],7.5,12,"B3",100,[["TL440",560,300,4]]),
+ D(12,"Losartan","Losartan","50mg","Tablet","H",["arb","antihypertensive"],6,12,"B3",100,[["LS990",540,260,3.2]]),
+ D(13,"Metoprolol","Metoprolol","50mg","Tablet","H",["betablocker","antihypertensive"],5,12,"B3",80,[["MT121",410,180,2.7]]),
+ D(14,"Pantoprazole","Pantoprazole","40mg","Tablet","H",["ppi","gastro"],9,12,"C1",150,[["PN456",480,420,4.2]]),
+ D(15,"Omeprazole","Omeprazole","20mg","Capsule","H",["ppi","gastro"],6,12,"C1",100,[["OM654",460,250,2.8]]),
+ D(16,"Paracetamol","Paracetamol","500mg","Tablet","OTC",["analgesic","antipyretic"],2,12,"D1",300,[["PC001",700,1200,0.9]]),
+ D(17,"Ibuprofen","Ibuprofen","400mg","Tablet","OTC",["nsaid","analgesic"],2.5,12,"D1",150,[["IB222",350,500,1.1]]),
+ D(18,"Diclofenac","Diclofenac","50mg","Tablet","H",["nsaid","analgesic"],3,12,"D1",150,[["DC333",15,200,1.2],["DC334",600,300,1.3]]),
+ D(19,"Aspirin","Aspirin","75mg","Tablet","OTC",["antiplatelet","nsaid"],1.5,12,"D2",150,[["AS444",500,600,0.6]]),
+ D(20,"Warfarin","Warfarin","5mg","Tablet","H",["anticoagulant"],5,12,"D2",40,[["WF555",430,100,2.5]]),
+ D(21,"Clopidogrel","Clopidogrel","75mg","Tablet","H",["antiplatelet"],9,12,"D2",60,[["CL666",520,180,4.6]]),
+ D(22,"Levothyroxine","Levothyroxine","50mcg","Tablet","H",["thyroid"],2.2,12,"E1",120,[["LV777",580,350,1.1]]),
+ D(23,"Cetirizine","Cetirizine","10mg","Tablet","OTC",["antihistamine"],1.8,12,"E2",200,[["CT888",650,700,0.7]]),
+ D(24,"Montelukast","Montelukast","10mg","Tablet","H",["antiasthma"],14,12,"E2",60,[["MK999",490,140,7]]),
+ D(25,"Salbutamol Inhaler","Salbutamol","100mcg","Inhaler","H",["antiasthma"],95,12,"E3",20,[["SB101",300,35,62]]),
+ D(26,"Alprazolam","Alprazolam","0.25mg","Tablet","H1",["benzodiazepine","cns"],3,12,"F1",30,[["AP202",360,80,1.6]]),
+ D(27,"Tramadol","Tramadol","50mg","Capsule","H1",["opioid","analgesic"],8,12,"F1",30,[["TR303",340,60,4.5]]),
+ D(28,"ORS Powder","Oral Rehydration Salts","21g","Sachet","OTC",["electrolyte"],21,5,"G1",60,[["OR404",400,90,14]]),
+ D(29,"Vitamin D3","Cholecalciferol","60000 IU","Capsule","OTC",["vitamin"],28,12,"G2",50,[["VD505",540,120,18]]),
+ D(30,"Multivitamin","Multivitamin","-","Tablet","OTC",["vitamin"],3.5,12,"G2",100,[["MV606",600,400,2]]),
+ D(31,"Povidone Iodine","Povidone Iodine","5% w/w","Ointment","OTC",["antiseptic"],55,12,"G3",20,[["PI707",450,45,36]]),
+ D(32,"Cough Syrup (Dextromethorphan)","Dextromethorphan","100ml","Syrup","OTC",["antitussive"],85,12,"G3",20,[["CS808",200,8,56]])
+ ];
+ const pts=[
+ {id:1,name:"Rajesh Kumar",dob:"1958-03-14",sex:"Male",phone:"9000011111",address:"12, Lake View Road",allergies:"Penicillin",conditions:"Type 2 Diabetes, Hypertension",insurance:"INS-48201"},
+ {id:2,name:"Anita Sharma",dob:"1985-11-02",sex:"Female",phone:"9000022222",address:"45, Green Park",allergies:"",conditions:"Hypothyroidism",insurance:""},
+ {id:3,name:"Mohammed Irfan",dob:"1972-07-21",sex:"Male",phone:"9000033333",address:"7, Market Street",allergies:"NSAIDs",conditions:"Atrial fibrillation",insurance:"INS-77310"},
+ {id:4,name:"Lakshmi Devi",dob:"1949-01-30",sex:"Female",phone:"9000044444",address:"3, Temple Lane",allergies:"Sulfa",conditions:"Hypertension, Dyslipidemia",insurance:""},
+ {id:5,name:"Aarav Patel",dob:"2016-05-09",sex:"Male",phone:"9000055555",address:"88, Hill Colony",allergies:"",conditions:"Asthma",insurance:""},
+ {id:6,name:"Sunita Reddy",dob:"1990-09-17",sex:"Female",phone:"9000066666",address:"21, Rose Garden",allergies:"",conditions:"",insurance:"INS-10992"}];
+ const prs=[
+ {id:1,name:"Dr. A. Menon",qual:"MBBS, MD (Medicine)",regNo:"KMC-45821",spec:"General Medicine",phone:"9111100001",clinic:"City Care Clinic"},
+ {id:2,name:"Dr. S. Iyer",qual:"MBBS, DM (Cardiology)",regNo:"TNMC-33910",spec:"Cardiology",phone:"9111100002",clinic:"Heart Centre"},
+ {id:3,name:"Dr. P. Gupta",qual:"MBBS, DCH",regNo:"DMC-77412",spec:"Paediatrics",phone:"9111100003",clinic:"Little Stars Hospital"},
+ {id:4,name:"Dr. R. Das",qual:"MBBS, MD (Psychiatry)",regNo:"",spec:"Psychiatry",phone:"9111100004",clinic:"Mind Care"}];
+ const sup=[
+ {id:1,name:"MediSource Distributors",gstin:"29ABCDE1234F1Z5",phone:"8000011111",city:"Bengaluru",dl:"KA-20B-1122"},
+ {id:2,name:"HealthLine Wholesale",gstin:"33PQRSX5678L1Z2",phone:"8000022222",city:"Chennai",dl:"TN-21B-8841"},
+ {id:3,name:"Apex Pharma Agencies",gstin:"36LMNOP9012K1Z8",phone:"8000033333",city:"Hyderabad",dl:"TS-20B-5530"}];
+ const rx=[
+ {id:"RX1001",date:today(),patientId:1,prescriberId:1,status:"Entered",refills:0,notes:"",lines:[{drugId:6,qty:60,sig:"1 tab BD after food",days:30},{drugId:10,qty:30,sig:"1 tab OD",days:30}]},
+ {id:"RX1002",date:today(),patientId:4,prescriberId:2,status:"Filled",refills:0,notes:"",lines:[{drugId:8,qty:30,sig:"1 tab at bedtime",days:30},{drugId:11,qty:30,sig:"1 tab OD",days:30}]},
+ {id:"RX1003",date:today(),patientId:2,prescriberId:1,status:"Verified",refills:0,notes:"",lines:[{drugId:22,qty:30,sig:"1 tab empty stomach in the morning",days:30}]}];
+ return {drugs,pts,prs,sup,rx,bills:[],purchases:[],held:[],guide:{},cnt:{drug:33,pt:7,pr:5,sup:4,rx:1004,bill:1001,pur:1},store:"Sunrise Pharmacy"};
+}
+function load(){try{const s=localStorage.getItem(LS);if(s){DB=JSON.parse(s);return}}catch(e){}DB=seed()}
+function save(){try{localStorage.setItem(LS,JSON.stringify(DB))}catch(e){}}
+const drugById=id=>DB.drugs.find(d=>d.id==id), ptById=id=>DB.pts.find(p=>p.id==id), prById=id=>DB.prs.find(p=>p.id==id);
+const dname=d=>`${d.name} ${d.str} ${d.form}`.replace(/ - /g," ");
+const stock=d=>d.batches.filter(b=>b.exp>today()).reduce((s,b)=>s+b.qty,0);
+const totalStock=d=>d.batches.reduce((s,b)=>s+b.qty,0);
+const fefo=d=>d.batches.filter(b=>b.qty>0&&b.exp>today()).sort((a,b)=>a.exp<b.exp?-1:1);
+function allocate(d,q){const out=[];let n=+q;for(const b of fefo(d)){if(n<=0)break;const t=Math.min(n,b.qty);out.push({batch:b,qty:t});n-=t}return n>0?null:out}
+
+/* ============ dialogs ============ */
+function modal(title,body,btns=[],opt={}){
+ const o=document.createElement("div");o.className="mo";
+ o.innerHTML=`<div class="dlg" style="${opt.w?`width:${opt.w}px`:""}"><div class="dh"><span>${title}</span><b>&#10005;</b></div><div class="db">${body}</div><div class="df"></div></div>`;
+ o.close=()=>o.remove();
+ $(".dh b",o).onclick=o.close;
+ btns.forEach(b=>{const e=document.createElement("button");e.textContent=b.t;if(b.p)e.className="p";if(b.d)e.className="d";
+  e.onclick=()=>{if(!b.fn||b.fn(o)!==false)o.close()};$(".df",o).appendChild(e)});
+ document.body.appendChild(o);
+ const f=$("input:not([readonly]):not([type=checkbox]),select,textarea",o);if(f&&!opt.nofocus)f.focus();else{const p=$(".df .p",o);p&&p.focus()}
+ return o;
+}
+function msg(text,title="PharmaDesk Pro",icon="ℹ️",cb){modal(title,`<div style="display:flex;align-items:center;max-width:420px"><span class="msgi">${icon}</span><div>${text}</div></div>`,[{t:"OK",p:1,fn:()=>{cb&&cb()}}])}
+function ask(text,yes,title="Confirm"){modal(title,`<div style="display:flex;align-items:center;max-width:420px"><span class="msgi">❓</span><div>${text}</div></div>`,[{t:"Yes",p:1,fn:()=>{yes()}},{t:"No"}])}
+function printEl(el){$$(".printable").forEach(x=>x.classList.remove("printable"));el.classList.add("printable");window.print()}
+
+/* ============ autocomplete ============ */
+function attachSearch(inp,search,row,pick){
+ let items=[],idx=0;const ac=$("#ac");
+ const hide=()=>{ac.style.display="none";items=[]};
+ function draw(){
+  if(!items.length){hide();return}
+  const r=inp.getBoundingClientRect();
+  ac.style.display="block";ac.style.left=r.left+"px";ac.style.top=r.bottom+"px";ac.style.minWidth=Math.max(r.width,380)+"px";
+  ac.innerHTML=items.map((it,i)=>`<div class="ac-i${i==idx?" on":""}" data-i="${i}">${row(it)}</div>`).join("");
+  ac.onmousedown=e=>{const d=e.target.closest(".ac-i");if(d){e.preventDefault();choose(+d.dataset.i)}};
+  const on=$(".on",ac);on&&on.scrollIntoView({block:"nearest"});
+ }
+ function choose(i){const it=items[i];hide();pick(it)}
+ function show(){items=search(inp.value.trim());idx=0;draw()}
+ inp.addEventListener("input",show);
+ inp.addEventListener("focus",()=>{if(!inp.readOnly)show()});
+ inp.addEventListener("keydown",e=>{
+  const open=ac.style.display==="block"&&items.length;
+  if(e.key==="ArrowDown"){if(!open)show();else{idx=(idx+1)%items.length;draw()}e.preventDefault()}
+  else if(e.key==="ArrowUp"&&open){idx=(idx-1+items.length)%items.length;draw();e.preventDefault()}
+  else if((e.key==="Enter"||e.key==="Tab")&&open){if(e.key==="Enter")e.preventDefault();choose(idx)}
+  else if(e.key==="Escape"&&open){hide();e.stopPropagation()}
+ });
+ inp.addEventListener("blur",()=>setTimeout(hide,150));
+}
+const drugSearch=q=>{q=q.toLowerCase();if(!q)return[];return DB.drugs.filter(d=>(dname(d)+" "+d.gen).toLowerCase().includes(q)).slice(0,12)};
+const drugRow=d=>`${esc(dname(d))}<small>${d.sched!=="OTC"?"Sch "+d.sched+" | ":""}Stock: ${stock(d)} | ${rs(d.mrp)}</small>`;
+const ptSearch=q=>{q=q.toLowerCase();return DB.pts.filter(p=>!q||(p.name+" "+p.phone+" PT"+p.id).toLowerCase().includes(q)).slice(0,10)};
+const ptRow=p=>`${esc(p.name)}<small>PT${p.id} | ${age(p.dob)}y ${p.sex[0]} | ${esc(p.phone)}</small>`;
+const prSearch=q=>{q=q.toLowerCase();return DB.prs.filter(p=>!q||(p.name+" "+p.regNo+" "+p.spec).toLowerCase().includes(q)).slice(0,10)};
+const prRow=p=>`${esc(p.name)}<small>${esc(p.spec)} | Reg: ${esc(p.regNo||"-")}</small>`;
+
+/* ============ windows ============ */
+const W={},S={};
+function openWin(id,title,render,keepFresh){
+ if(W[id]){activate(id);if(keepFresh)W[id].refresh();return W[id]}
+ const pane=document.createElement("div");pane.className="win";$("#desk").appendChild(pane);
+ const tab=document.createElement("div");tab.className="tab";tab.innerHTML=`<span>${esc(title)}</span><b title="Close">&#10005;</b>`;
+ $("#tabs").appendChild(tab);
+ tab.onclick=e=>{if(e.target.tagName==="B")closeWin(id);else activate(id)};
+ W[id]={pane,tab,refresh:()=>render(pane)};
+ render(pane);activate(id);return W[id];
+}
+function activate(id){Object.entries(W).forEach(([k,w])=>{w.pane.classList.toggle("on",k===id);w.tab.classList.toggle("on",k===id)});S.cur=id}
+function closeWin(id){const w=W[id];if(!w)return;w.pane.remove();w.tab.remove();delete W[id];const k=Object.keys(W).filter(x=>x!=="cur").pop();if(k)activate(k);else S.cur=null}
+function refreshWin(id){if(W[id])W[id].refresh()}
+
+/* ============ shell ============ */
+const NAV={
+ dash:["Dashboard","\u{1F3E0}",()=>dashboard()],
+ rx:["New Prescription","\u{1F4DD}",()=>rxEntry(),"F2"],
+ queue:["Rx Queue","\u{1F4CB}",()=>queue(),"F3"],
+ bill:["Retail Billing","\u{1F9FE}",()=>billing(),"F4"],
+ inv:["Inventory","\u{1F4E6}",()=>inventory(),"F6"],
+ pt:["Patients","\u{1F9D1}",()=>patients(),"F7"],
+ pr:["Prescribers","\u{1FA7A}",()=>prescribers()],
+ sup:["Suppliers","\u{1F69A}",()=>suppliers()],
+ pur:["Purchase Entry","\u{1F4E5}",()=>purchase()],
+ rep:["Reports","\u{1F4CA}",()=>reports(),"F8"],
+ guide:["Training Guide","\u{1F393}",()=>guide(),"F1"]
+};
+function buildShell(){
+ const M=[
+ ["File",[["Dashboard","dash"],["-"],["Change User / Logout",()=>logout()],["Exit",()=>msg("This is a training simulator &ndash; use the browser tab to close it.","Exit","\u{1F6AA}")]]],
+ ["Masters",[["Patients","pt"],["Prescribers","pr"],["Suppliers","sup"],["Items / Inventory","inv"]]],
+ ["Transactions",[["New Prescription Entry","rx"],["Prescription Queue (Workflow)","queue"],["Retail / Counter Billing","bill"],["Purchase Entry (GRN)","pur"]]],
+ ["Reports",[["Reports Centre...","rep"],["-"],["Expiry Report",()=>reports("exp")],["Low Stock Report",()=>reports("low")],["Schedule H/H1 Register",()=>reports("sch")]]],
+ ["Utilities",[["Backup Data (download)",()=>backup()],["Restore Data...",()=>restore()],["-"],["Reset Training Data",()=>resetData()]]],
+ ["Help",[["Training Guide","guide"],["About",()=>msg("<b>PharmaDesk Pro &ndash; Training Edition</b><br>A fictional pharmacy software simulator for classroom practice. It works fully offline; data stays in this browser only.","About","\u{1F48A}")]]]
+ ];
+ const mb=$("#menu");mb.innerHTML="";
+ M.forEach(([t,items])=>{
+  const d=document.createElement("div");d.innerHTML=`${t}<div class="dd"></div>`;
+  items.forEach(it=>{
+   if(it[0]==="-"){$(".dd",d).appendChild(document.createElement("hr"));return}
+   const r=document.createElement("div");const nv=typeof it[1]==="string"?NAV[it[1]]:null;
+   r.innerHTML=`<span>${it[0]}</span><i>${nv&&nv[3]||""}</i>`;
+   r.onclick=e=>{e.stopPropagation();closeMenus();nv?nv[2]():it[1]()};
+   $(".dd",d).appendChild(r);
+  });
+  d.onclick=()=>{const was=d.classList.contains("open");closeMenus();if(!was)d.classList.add("open")};
+  d.onmouseenter=()=>{if($("#menu .open")){closeMenus();d.classList.add("open")}};
+  mb.appendChild(d);
+ });
+ const tl=$("#tool");tl.innerHTML="";
+ ["dash","rx","queue","bill","|","inv","pt","pr","pur","|","rep","guide"].forEach(k=>{
+  if(k==="|"){tl.insertAdjacentHTML("beforeend",'<div class="sep"></div>');return}
+  const n=NAV[k],b=document.createElement("button");b.innerHTML=`<span>${n[1]}</span>${n[0]}`;b.title=n[0]+(n[3]?" ("+n[3]+")":"");b.onclick=n[2];tl.appendChild(b);
+ });
+}
+const closeMenus=()=>$$("#menu .open").forEach(x=>x.classList.remove("open"));
+document.addEventListener("click",e=>{if(!e.target.closest("#menu"))closeMenus()});
+document.addEventListener("focusin",e=>{const h=e.target.dataset&&e.target.dataset.hint;if(h)$("#hint").innerHTML="\u{1F4A1} "+esc(h)});
+document.addEventListener("keydown",e=>{
+ if(e.key==="Escape"){const m=$$(".mo").pop();if(m){m.close();return}}
+ if($("#app").hidden)return;
+ const map={F1:"guide",F2:"rx",F3:"queue",F4:"bill",F6:"inv",F7:"pt",F8:null};
+ if(e.key in map&&!$(".mo")){
+  if(e.key==="F8"&&(S.cur==="rx"||S.cur==="bill"))return;
+  e.preventDefault();NAV[map[e.key]||"rep"][2]();
+ }
+});
+function logout(){$("#app").hidden=true;$("#login").style.display="flex";Object.keys(W).filter(k=>k!=="cur").forEach(closeWin);$("#l_pass").value=""}
+$("#l_go").onclick=()=>{
+ USER={name:$("#l_user").value.trim()||"student",role:$("#l_role").value,store:$("#l_store").value};
+ $("#login").style.display="none";$("#app").hidden=false;
+ $("#tstore").textContent="- "+USER.store;$("#s_user").textContent="\u{1F464} "+USER.name+" ("+USER.role+")";$("#s_store").textContent="\u{1F3EA} "+USER.store;
+ buildShell();dashboard();
+};
+$("#login").addEventListener("keydown",e=>{if(e.key==="Enter")$("#l_go").click()});
+$("#wclose").onclick=()=>msg("This is a training simulator &ndash; the window cannot be closed from here.","Close","\u{1F6AA}");
+setInterval(()=>{const n=new Date();$("#s_clock").textContent=n.toLocaleDateString("en-GB")+"  "+n.toLocaleTimeString("en-GB")},1000);
+
+/* ============ dashboard ============ */
+function dashboard(){
+ openWin("dash","Dashboard",p=>{
+  const t=today(),bills=DB.bills.filter(b=>b.date===t),sales=bills.reduce((s,b)=>s+b.net,0);
+  const low=DB.drugs.filter(d=>stock(d)<=d.ro).length,near=DB.drugs.filter(d=>d.batches.some(b=>b.qty>0&&b.exp>t&&daysTo(b.exp)<=90)).length,exp=DB.drugs.filter(d=>d.batches.some(b=>b.qty>0&&b.exp<=t)).length;
+  const pend=s=>DB.rx.filter(r=>r.status===s).length;
+  p.innerHTML=`<h3>Welcome, ${esc(USER.name)} &mdash; ${esc(USER.store)}</h3>
+  <div class="tiles">
+   <div class="tile g" data-g="rep"><small>Today's Sales</small><b>${rs(sales)}</b>${bills.length} bill(s)</div>
+   <div class="tile" data-g="queue"><small>Rx to Fill</small><b>${pend("Entered")}</b>awaiting data entry/fill</div>
+   <div class="tile a" data-g="queue"><small>Rx to Verify</small><b>${pend("Filled")}</b>pharmacist check</div>
+   <div class="tile g" data-g="queue"><small>Ready for Pickup</small><b>${pend("Verified")}</b>verified</div>
+   <div class="tile r" data-g="low"><small>Low Stock Items</small><b>${low}</b>at/below reorder level</div>
+   <div class="tile a" data-g="exp"><small>Expiring &le; 90 days</small><b>${near}</b>${exp} already expired</div></div>
+  <h3>Quick Actions</h3><div class="quick">
+   ${["rx","queue","bill","inv","pt","pur","rep","guide"].map(k=>`<button data-g="${k}"><span>${NAV[k][1]}</span>${NAV[k][0]}</button>`).join("")}</div>
+  <h3>Recent Prescriptions</h3><div class="grid-wrap"><table class="grid"><thead><tr><th>Rx No</th><th>Date</th><th>Patient</th><th>Prescriber</th><th>Items</th><th>Status</th></tr></thead><tbody>
+  ${DB.rx.slice(-8).reverse().map(r=>`<tr><td>${r.id}</td><td>${fmtD(r.date)}</td><td>${esc(ptById(r.patientId)?.name)}</td><td>${esc(prById(r.prescriberId)?.name)}</td><td>${r.lines.length}</td><td>${stBadge(r.status)}</td></tr>`).join("")||"<tr><td colspan=6>No prescriptions yet</td></tr>"}</tbody></table></div>`;
+  p.onclick=e=>{const g=e.target.closest("[data-g]");if(!g)return;const k=g.dataset.g;if(k==="low"||k==="exp")reports(k);else NAV[k][2]()};
+ },true);
+}
+const stBadge=s=>`<span class="bdg ${{Entered:"b",Filled:"a",Verified:"g",Dispensed:"",Rejected:"r"}[s]||""}">${s}</span>`;
+
+/* ============ generic master ============ */
+function master(id,title,key,cols,fields,noun){
+ openWin(id,title,p=>{
+  let sel=null,q="";
+  p.innerHTML=`<div class="tb2"><input class="srch" placeholder="Search ${noun}..." data-hint="Search: type any part of the name, phone or ID to filter the list."><button class="p" data-a="add">New (Ins)</button><button data-a="edit">Edit</button><button data-a="del">Delete</button></div>
+  <div class="grid-wrap" style="max-height:72vh"><table class="grid"><thead><tr>${cols.map(c=>`<th>${c[0]}</th>`).join("")}</tr></thead><tbody></tbody></table></div>`;
+  const tb=$("tbody",p);
+  const draw=()=>{const rows=DB[key].filter(r=>!q||JSON.stringify(Object.values(r)).toLowerCase().includes(q));
+   tb.innerHTML=rows.map(r=>`<tr data-id="${r.id}" class="${r.id===sel?"sel":""}">${cols.map(c=>`<td>${esc(c[1](r))}</td>`).join("")}</tr>`).join("")||`<tr><td colspan="${cols.length}">No records found.</td></tr>`};
+  const form=r=>{
+   const isN=!r;r=r||{};
+   const body=fields.map(f=>{const v=r[f.k]??"";let inp;
+    if(f.t==="select")inp=`<select id="f_${f.k}" data-hint="${esc(f.h||"")}">${f.o.map(o=>`<option ${o===v?"selected":""}>${o}</option>`).join("")}</select>`;
+    else if(f.t==="area")inp=`<textarea id="f_${f.k}" rows="2" class="wide" data-hint="${esc(f.h||"")}">${esc(v)}</textarea>`;
+    else inp=`<input id="f_${f.k}" type="${f.t||"text"}" class="wide" value="${esc(v)}" data-hint="${esc(f.h||"")}">`;
+    return `<div class="row"><label>${f.l}${f.r?" *":""}</label>${inp}</div>`}).join("");
+   modal((isN?"New ":"Edit ")+noun,body,[{t:"Save (F9)",p:1,fn:o=>{
+    const rec={};for(const f of fields){rec[f.k]=$("#f_"+f.k,o).value.trim();if(f.r&&!rec[f.k]){msg(`<b>${f.l}</b> is required.`,"Validation","⚠️");return false}}
+    if(isN){rec.id=DB.cnt[key==="pts"?"pt":key==="prs"?"pr":"sup"]++;DB[key].push(rec);sel=rec.id}else Object.assign(r,rec);
+    save();draw()}},{t:"Cancel"}],{w:470});
+  };
+  p.onclick=e=>{const b=e.target.dataset.a,tr=e.target.closest("tbody tr");
+   if(tr&&tr.dataset.id){sel=+tr.dataset.id;draw()}
+   if(b==="add")form();
+   if(b==="edit"){const r=DB[key].find(x=>x.id===sel);r?form(r):msg("Select a record first.","Edit","⚠️")}
+   if(b==="del"){const r=DB[key].find(x=>x.id===sel);if(!r)return msg("Select a record first.","Delete","⚠️");
+    ask(`Delete <b>${esc(r.name)}</b>?`,()=>{DB[key]=DB[key].filter(x=>x!==r);sel=null;save();draw()},"Delete")}};
+  p.ondblclick=e=>{const tr=e.target.closest("tbody tr");if(tr){sel=+tr.dataset.id;form(DB[key].find(x=>x.id===sel))}};
+  $(".srch",p).oninput=e=>{q=e.target.value.toLowerCase();draw()};
+  p.addEventListener("keydown",e=>{if(e.key==="Insert"){e.preventDefault();form()}});
+  draw();
+ });
+}
+function patients(){master("pt","Patient Master","pts",[["ID",r=>"PT"+r.id],["Patient Name",r=>r.name],["Age/Sex",r=>age(r.dob)+" / "+r.sex],["Phone",r=>r.phone],["Allergies",r=>r.allergies||"-"],["Conditions",r=>r.conditions||"-"],["Insurance ID",r=>r.insurance||"-"]],
+ [{k:"name",l:"Full Name",r:1,h:"Patient name exactly as on ID / prescription."},{k:"dob",l:"Date of Birth",t:"date",h:"Date of birth - age is calculated automatically and used for dose/geriatric checks."},{k:"sex",l:"Sex",t:"select",o:["Male","Female","Other"],h:"Sex as per patient record."},{k:"phone",l:"Mobile No.",r:1,h:"10-digit mobile number - used to search patients and send refill reminders."},{k:"address",l:"Address",t:"area",h:"Residential address (needed for home delivery and Schedule H1 register)."},{k:"allergies",l:"Allergies",h:"Comma separated, e.g. Penicillin, Sulfa, NSAIDs. The system warns during Rx entry."},{k:"conditions",l:"Medical Conditions",h:"Chronic conditions e.g. Diabetes, Hypertension. Helps the pharmacist counsel."},{k:"insurance",l:"Insurance / Card ID",h:"Insurance member ID or loyalty card number, if any."}],"patient")}
+function prescribers(){master("pr","Prescriber (Doctor) Master","prs",[["ID",r=>"DR"+r.id],["Doctor Name",r=>r.name],["Qualification",r=>r.qual],["Reg. No.",r=>r.regNo||"-"],["Speciality",r=>r.spec],["Clinic / Hospital",r=>r.clinic],["Phone",r=>r.phone]],
+ [{k:"name",l:"Doctor Name",r:1,h:"Name with title, e.g. Dr. A. Menon."},{k:"qual",l:"Qualification",h:"e.g. MBBS, MD."},{k:"regNo",l:"Medical Reg. No.",h:"State medical council registration number. MANDATORY for Schedule H1 prescriptions."},{k:"spec",l:"Speciality",h:"e.g. Cardiology."},{k:"clinic",l:"Clinic / Hospital",h:"Practice address or hospital name printed on the prescription."},{k:"phone",l:"Phone",h:"Contact number - used to call the prescriber for clarifications."}],"prescriber")}
+function suppliers(){master("sup","Supplier Master","sup",[["ID",r=>"SP"+r.id],["Supplier Name",r=>r.name],["GSTIN",r=>r.gstin],["Drug Licence No.",r=>r.dl],["City",r=>r.city],["Phone",r=>r.phone]],
+ [{k:"name",l:"Supplier Name",r:1,h:"Wholesaler / distributor name as on invoice."},{k:"gstin",l:"GSTIN",h:"15-character GST identification number."},{k:"dl",l:"Drug Licence No.",h:"Wholesale drug licence number of the supplier."},{k:"city",l:"City",h:"Supplier city."},{k:"phone",l:"Phone",h:"Contact number."}],"supplier")}
+
+/* ============ Rx entry ============ */
+const INTERACT=[["warfarin","aspirin","Major: increased bleeding risk (anticoagulant + antiplatelet).","err"],["warfarin","ibuprofen","Major: NSAID increases bleeding risk with warfarin.","err"],["warfarin","diclofenac","Major: NSAID increases bleeding risk with warfarin.","err"],["warfarin","azithromycin","Moderate: INR may rise - monitor.","warn"],["clopidogrel","omeprazole","Moderate: omeprazole reduces clopidogrel activation.","warn"],["alprazolam","tramadol","Major: additive CNS/respiratory depression.","err"],["aspirin","ibuprofen","Moderate: ibuprofen blunts aspirin's antiplatelet effect.","warn"],["metformin","ciprofloxacin","Moderate: risk of blood glucose disturbance.","warn"]];
+function rxAlerts(pt,lines){
+ const out=[];const ds=lines.filter(l=>l.drug);
+ if(pt&&pt.allergies){const toks=pt.allergies.toLowerCase().split(/[,;]+/).map(s=>s.trim()).filter(Boolean);
+  ds.forEach(l=>{const d=l.drug;if(toks.some(t=>d.cls.some(c=>t.includes(c)||c.includes(t))||d.gen.toLowerCase().includes(t)))out.push(["err",`ALLERGY: ${esc(pt.name)} is allergic to <b>${esc(pt.allergies)}</b> &ndash; ${esc(dname(d))} matches.`])})}
+ for(let i=0;i<ds.length;i++)for(let j=i+1;j<ds.length;j++){
+  const a=ds[i].drug,b=ds[j].drug;
+  if(a.cls[0]===b.cls[0]&&a.id!==b.id)out.push(["warn",`DUPLICATE THERAPY: ${esc(a.name)} and ${esc(b.name)} are both <i>${a.cls[0]}</i>.`]);
+  if(a.id===b.id)out.push(["warn",`DUPLICATE ITEM: ${esc(dname(a))} entered twice.`]);
+  INTERACT.forEach(([x,y,t,l])=>{const ga=a.gen.toLowerCase(),gb=b.gen.toLowerCase();if((ga===x&&gb===y)||(ga===y&&gb===x))out.push([l,`INTERACTION: ${esc(a.name)} + ${esc(b.name)} &ndash; ${t}`])})}
+ ds.forEach(l=>{const d=l.drug,q=+l.qty||0;
+  if(!stock(d))out.push(["err",`NO STOCK: ${esc(dname(d))} is out of (non-expired) stock.`]);
+  else if(q>stock(d))out.push(["err",`INSUFFICIENT STOCK: ${esc(dname(d))} needs ${q}, only ${stock(d)} available.`]);
+  const b=fefo(d)[0];if(b&&daysTo(b.exp)<=90)out.push(["warn",`SHORT EXPIRY: ${esc(dname(d))} batch ${b.no} expires ${fmtE(b.exp)} &ndash; counsel patient / dispense soon.`]);
+  if(d.sched==="H1")out.push(["warn",`SCHEDULE H1: ${esc(d.name)} must be entered in the H1 register (patient, prescriber, qty). No refills.`]);
+  if(pt&&age(pt.dob)>=65&&["benzodiazepine","opioid"].includes(d.cls[0]))out.push(["warn",`GERIATRIC (age ${age(pt.dob)}): ${esc(d.name)} is potentially inappropriate (Beers criteria).`]);
+  if(pt&&age(pt.dob)<12&&["quinolone","opioid","benzodiazepine"].includes(d.cls[0]))out.push(["err",`PAEDIATRIC (age ${age(pt.dob)}): ${esc(d.name)} not recommended in children.`]);
+  if(q<=0)out.push(["warn",`Quantity missing for ${esc(dname(d))}.`])});
+ return out;
+}
+function rxEntry(){openWin("rx","New Prescription",buildRx)}
+function buildRx(p){
+ let pt=null,pr=null,L=[{}];
+ p.innerHTML=`<div class="two">
+ <fieldset><legend>Patient</legend>
+  <div class="row"><label>Rx No.</label><input id="rx_no" readonly style="width:100px"><label style="width:50px">Date</label><input id="rx_date" type="date" data-hint="Rx Date: the date the prescription was written by the doctor (usually today)."></div>
+  <div class="row"><label>Patient *</label><input id="rx_pt" class="wide" placeholder="Type name / phone and press Enter" autocomplete="off" data-hint="Patient: type name, phone or ID and pick from the list. If not found, click + to register a new patient."><button id="rx_npt" title="New patient">&#65291;</button></div>
+  <div class="info" id="rx_ptinfo">No patient selected</div></fieldset>
+ <fieldset><legend>Prescriber &amp; Details</legend>
+  <div class="row"><label>Prescriber *</label><input id="rx_pr" class="wide" placeholder="Type doctor name / reg no" autocomplete="off" data-hint="Prescriber: the doctor who signed the prescription. Registration number is mandatory for Schedule H1 drugs."><button id="rx_npr" title="New prescriber">&#65291;</button></div>
+  <div class="info" id="rx_prinfo">No prescriber selected</div>
+  <div class="row"><label>Refills</label><input id="rx_ref" type="number" min="0" max="5" value="0" style="width:60px" data-hint="Refills: number of repeat fills the doctor authorised (0 if none written)."><label style="width:60px">Priority</label><select id="rx_pri"><option>Normal</option><option>Urgent</option></select><label style="width:60px">Notes</label><input id="rx_notes" class="wide" data-hint="Notes: any special instruction - e.g. 'Patient will collect after 5 pm', 'Call doctor if unclear'."></div></fieldset></div>
+ <fieldset><legend>Medicines (Rx Lines) &mdash; Enter moves to the next field</legend>
+ <div class="grid-wrap"><table class="grid"><thead><tr><th>#</th><th style="min-width:300px">Drug / Item</th><th>Form</th><th>Qty</th><th style="min-width:200px">Directions (Sig)</th><th>Days</th><th>Batch</th><th>Exp</th><th>Rate</th><th>Amount</th><th></th></tr></thead><tbody id="rx_tb"></tbody></table></div></fieldset>
+ <div class="bar"><div class="alerts" id="rx_al"></div><div class="tot"><div><span>Items</span><b id="rx_ni">0</b></div><div><span>Gross (MRP incl. GST)</span><b id="rx_g">0.00</b></div><div class="net"><span>Total Payable</span><span id="rx_net">0.00</span></div></div>
+ <div class="acts"><button class="p" id="rx_save">Save to Queue (F9)</button><button id="rx_clr">Clear (F8)</button></div></div>`;
+ const tb=$("#rx_tb",p);
+ const reset=()=>{pt=null;pr=null;L=[{}];$("#rx_no").value="RX"+DB.cnt.rx;$("#rx_date").value=today();$("#rx_pt").value="";$("#rx_pr").value="";$("#rx_ref").value=0;$("#rx_notes").value="";$("#rx_pri").value="Normal";info();draw()};
+ const info=()=>{
+  $("#rx_ptinfo").innerHTML=pt?`<b>PT${pt.id}</b> ${esc(pt.name)} &middot; ${age(pt.dob)} yrs ${pt.sex} &middot; ${esc(pt.phone)}<br>Allergies: ${pt.allergies?`<span class="al">${esc(pt.allergies)}</span>`:"None known"} &middot; Conditions: ${esc(pt.conditions||"-")}`:"No patient selected";
+  $("#rx_prinfo").innerHTML=pr?`${esc(pr.name)} &middot; ${esc(pr.qual)}<br>Reg No: ${pr.regNo?esc(pr.regNo):'<span class="al">NOT ON FILE</span>'} &middot; ${esc(pr.clinic)}`:"No prescriber selected";
+ };
+ const sums=()=>{
+  let g=0;L.forEach((l,i)=>{const a=l.drug?(+l.qty||0)*l.drug.mrp:0;g+=a;const c=$(`tr[data-i="${i}"] .amt`,tb);if(c)c.textContent=m2(a)});
+  $("#rx_ni").textContent=L.filter(l=>l.drug).length;$("#rx_g").textContent=m2(g);$("#rx_net").textContent=m2(Math.round(g));
+  const al=rxAlerts(pt,L);$("#rx_al").innerHTML=al.length?al.map(a=>`<div class="${a[0]}">${a[0]==="err"?"⛔":"⚠️"} ${a[1]}</div>`).join(""):`<div class="ok">✔ No clinical alerts. (DUR checks: allergy, duplicate, interaction, stock, age)</div>`;
+  return al;
+ };
+ function draw(fr,fc){
+  tb.innerHTML=L.map((l,i)=>{const d=l.drug,b=d&&fefo(d)[0];return `<tr data-i="${i}"><td class="c">${i+1}</td>
+  <td><input class="dsr" value="${esc(d?dname(d):l.txt||"")}" autocomplete="off" placeholder="Search drug name / generic..." data-hint="Drug: type a few letters of brand or generic name, use arrow keys and Enter to pick. Check strength and form carefully!"></td>
+  <td class="c">${d?esc(d.form):""}</td>
+  <td><input class="n" data-f="qty" value="${esc(l.qty||"")}" inputmode="numeric" data-hint="Quantity: total number of units (tablets/capsules/bottles) to dispense. Example: 1 tab twice daily x 5 days = 10."></td>
+  <td><input data-f="sig" list="sigs" value="${esc(l.sig||"")}" data-hint="Sig (directions): how the patient takes it, e.g. '1 tab twice daily after food'. Pattern 1-0-1 means morning-afternoon-night."></td>
+  <td><input class="n" data-f="days" value="${esc(l.days||"")}" inputmode="numeric" style="width:55px" data-hint="Days' supply: how many days this quantity lasts. If Sig is like 1-0-1 and Qty is empty it is auto-calculated."></td>
+  <td class="c">${b?esc(b.no):"-"}</td><td class="c">${b?fmtE(b.exp):""}</td><td class="r">${d?m2(d.mrp):""}</td><td class="r amt">0.00</td><td class="c"><span class="del" title="Remove line">&#10005;</span></td></tr>`}).join("");
+  $$(".dsr",tb).forEach((inp,i)=>attachSearch(inp,drugSearch,drugRow,d=>{L[i].drug=d;if(!L[i].sig)L[i].sig="";if(i===L.length-1)L.push({});draw(i,"qty")}));
+  if(fr!=null){const t=$(`tr[data-i="${fr}"] ${fc==="qty"?'[data-f="qty"]':".dsr"}`,tb);t&&t.focus()}
+  sums();
+ }
+ tb.addEventListener("input",e=>{const tr=e.target.closest("tr"),f=e.target.dataset.f;if(!tr||!f)return;const l=L[+tr.dataset.i];l[f]=e.target.value;
+  if(f==="days"&&!l.qty){const m=(l.sig||"").match(/(\d+)\s*-\s*(\d+)\s*-\s*(\d+)/);if(m&&+l.days){l.qty=(+m[1]+ +m[2]+ +m[3])*+l.days;$('[data-f="qty"]',tr).value=l.qty}}
+  sums()});
+ tb.addEventListener("keydown",e=>{
+  if(e.key!=="Enter"||e.target.tagName!=="INPUT")return;const tr=e.target.closest("tr"),i=+tr.dataset.i;
+  const order=[...tr.querySelectorAll("input")];const k=order.indexOf(e.target);
+  if(k>=0&&k<order.length-1){e.preventDefault();order[k+1].focus()}
+  else if(k===order.length-1){e.preventDefault();if(i===L.length-1){L.push({});draw(i+1)}else $$(".dsr",tb)[i+1].focus()}});
+ tb.addEventListener("click",e=>{if(e.target.classList.contains("del")){const i=+e.target.closest("tr").dataset.i;L.splice(i,1);if(!L.length)L.push({});draw()}});
+ attachSearch($("#rx_pt"),ptSearch,ptRow,x=>{pt=x;$("#rx_pt").value=x.name;info();sums()});
+ attachSearch($("#rx_pr"),prSearch,prRow,x=>{pr=x;$("#rx_pr").value=x.name;info();sums()});
+ $("#rx_pt").addEventListener("input",()=>{pt=null;info()});$("#rx_pr").addEventListener("input",()=>{pr=null;info()});
+ $("#rx_npt").onclick=()=>{patients();msg("Opened Patient Master. Click <b>New</b> to add the patient, then come back to the Prescription tab.","New Patient","\u{1F9D1}",()=>{})};
+ $("#rx_npr").onclick=()=>{prescribers();msg("Opened Prescriber Master. Click <b>New</b> to add the doctor, then come back to the Prescription tab.","New Prescriber","\u{1FA7A}")};
+ $("#rx_clr").onclick=()=>ask("Clear this prescription form?",reset,"Clear");
+ function commit(over){
+  const rx={id:$("#rx_no").value,date:$("#rx_date").value,patientId:pt.id,prescriberId:pr.id,status:"Entered",refills:+$("#rx_ref").value||0,priority:$("#rx_pri").value,notes:$("#rx_notes").value,override:over||"",
+   lines:L.filter(l=>l.drug).map(l=>({drugId:l.drug.id,qty:+l.qty,sig:l.sig||"",days:+l.days||0}))};
+  DB.rx.push(rx);DB.cnt.rx++;save();refreshWin("queue");
+  msg(`Prescription <b>${rx.id}</b> saved and sent to the <b>Fill Queue</b>.<br>Next step: open <i>Rx Queue</i> (F3) to Fill &rarr; Verify &rarr; Dispense.`,"Saved","✅",reset);
+ }
+ $("#rx_save").onclick=()=>{
+  const miss=[];if(!pt)miss.push("Patient");if(!pr)miss.push("Prescriber");
+  const ls=L.filter(l=>l.drug);if(!ls.length)miss.push("at least one medicine");
+  if(ls.some(l=>!(+l.qty>0)))miss.push("quantity for every medicine");
+  if(ls.some(l=>!(l.sig||"").trim()))miss.push("directions (Sig) for every medicine");
+  if(miss.length)return msg("Please enter: <b>"+miss.join(", ")+"</b>.","Missing Information","⚠️");
+  if(ls.some(l=>l.drug.sched==="H1")&&!pr.regNo)return msg("<b>Schedule H1 drug</b> requires the prescriber's medical registration number. Update it in the Prescriber Master before saving.","Compliance Check","⛔");
+  const al=sums();
+  if(al.some(a=>a[0]==="err")){
+   modal("DUR Alert Override",`<div style="max-width:460px"><p><b>Serious alerts were found:</b></p>${al.filter(a=>a[0]==="err").map(a=>`<div style="color:#c0392b;margin:3px 0">⛔ ${a[1]}</div>`).join("")}<div class="row"><label>Action taken</label><select id="f_ov"><option value="">-- select --</option><option>Prescriber contacted - confirmed to proceed</option><option>Patient counselled - aware of risk</option><option>Prescriber changed the drug</option><option>Other (documented)</option></select></div></div>`,
+    [{t:"Override & Save",p:1,fn:o=>{const v=$("#f_ov",o).value;if(!v){msg("Select the action taken to override.","Override","⚠️");return false}commit(v)}},{t:"Go Back & Edit"}],{w:520});
+  }else commit();
+ };
+ p.addEventListener("keydown",e=>{if(e.key==="F9"){e.preventDefault();$("#rx_save").click()}if(e.key==="F8"){e.preventDefault();$("#rx_clr").click()}});
+ reset();
+}
+
+/* ============ Rx queue / workflow ============ */
+function queue(){openWin("queue","Rx Queue",p=>{
+ let f=S.qf||"All",sel=null;S.qf=f;
+ const draw=()=>{
+  const rows=DB.rx.filter(r=>f==="All"||r.status===f).slice().reverse();
+  p.innerHTML=`<div class="tb2"><b>Workflow:</b> ${["All","Entered","Filled","Verified","Dispensed","Rejected"].map(s=>`<button data-f="${s}" class="${s===f?"p":""}">${s}${s==="All"?"":" ("+DB.rx.filter(r=>r.status===s).length+")"}</button>`).join("")}<span style="flex:1"></span><button class="p" data-a="new">New Rx (F2)</button></div>
+  <div class="grid-wrap" style="max-height:74vh"><table class="grid"><thead><tr><th>Rx No</th><th>Date</th><th>Patient</th><th>Prescriber</th><th>Medicines</th><th>Status</th><th>Amount</th><th>Action</th></tr></thead><tbody>
+  ${rows.map(r=>{const amt=r.lines.reduce((s,l)=>s+l.qty*(drugById(l.drugId)?.mrp||0),0),nx={Entered:"Fill",Filled:"Verify",Verified:"Dispense"}[r.status];
+   return `<tr data-id="${r.id}"><td><b>${r.id}</b></td><td>${fmtD(r.date)}</td><td>${esc(ptById(r.patientId)?.name)}</td><td>${esc(prById(r.prescriberId)?.name)}</td><td>${r.lines.map(l=>esc(drugById(l.drugId)?.name)).join(", ")}</td><td>${stBadge(r.status)}</td><td class="r">${rs(amt)}</td>
+   <td>${nx?`<button class="p" data-a="${nx}">${nx}</button> `:""}<button data-a="View">View</button>${["Entered","Filled","Verified"].includes(r.status)?` <button data-a="Reject">Reject</button>`:""}${r.status==="Dispensed"&&r.billId?` <button data-a="Bill">Bill</button>`:""}</td></tr>`}).join("")||`<tr><td colspan="8">No prescriptions in this status.</td></tr>`}</tbody></table></div>`;
+ };
+ p.onclick=e=>{
+  const fb=e.target.dataset.f;if(fb){f=S.qf=fb;draw();return}
+  const a=e.target.dataset.a,tr=e.target.closest("tr[data-id]");if(a==="new")return rxEntry();if(!a||!tr)return;
+  const r=DB.rx.find(x=>x.id===tr.dataset.id);
+  ({Fill:()=>fillDlg(r,draw),Verify:()=>verifyDlg(r,draw),Dispense:()=>dispenseDlg(r,draw),View:()=>viewRx(r),Bill:()=>showBill(DB.bills.find(b=>b.no===r.billId)),
+   Reject:()=>ask(`Reject <b>${r.id}</b>? It will be marked Rejected.`,()=>{r.status="Rejected";save();draw()},"Reject")})[a]();
+ };
+ draw();
+},true)}
+function labelsHTML(r){
+ const pt=ptById(r.patientId),pr=prById(r.prescriberId);
+ return r.lines.map(l=>{const d=drugById(l.drugId),b=fefo(d)[0]||d.batches[0]||{no:"-",exp:""};
+  return `<div class="label"><h4>${esc(DB.store)}</h4><div>Rx: <b>${r.id}</b> &nbsp; Date: ${fmtD(today())}</div><div>Patient: <b>${esc(pt.name)}</b> (${age(pt.dob)}y/${pt.sex[0]})</div><div class="dn">${esc(dname(d))}</div><div>Qty: <b>${l.qty}</b> ${esc(d.form)}(s) &nbsp; Days: ${l.days||"-"}</div><div><b>Directions: ${esc(l.sig)}</b></div><div>Batch: ${esc(b.no)} &nbsp; Exp: ${fmtE(b.exp)}</div><div>Dr: ${esc(pr.name)}</div><div style="font-size:10px;margin-top:4px;border-top:1px solid #333;padding-top:2px">Keep out of reach of children. Store in a cool dry place.</div></div>`}).join("");
+}
+function fillDlg(r,done){
+ const o=modal(`Fill Prescription ${r.id}`,`<p>Pick the medicines from shelf, count the quantity and print labels. Check each line below.</p><div id="lbl" style="max-width:720px">${labelsHTML(r)}</div>${r.lines.map((l,i)=>`<div><label><input type="checkbox" class="fc"> Counted &amp; picked: <b>${esc(dname(drugById(l.drugId)))}</b> &times; ${l.qty}</label></div>`).join("")}`,
+ [{t:"Print Labels",fn:()=>{printEl($("#lbl",o));return false}},{t:"Mark as Filled",p:1,fn:()=>{if($$(".fc",o).some(c=>!c.checked)){msg("Tick every medicine once it has been picked and counted.","Fill","⚠️");return false}r.status="Filled";save();done()}},{t:"Cancel"}],{w:760});
+}
+function verifyDlg(r,done){
+ const pt=ptById(r.patientId),al=rxAlerts(pt,r.lines.map(l=>({...l,drug:drugById(l.drugId)})));
+ const o=modal(`Pharmacist Verification - ${r.id}`,`<div style="max-width:620px"><div class="info">Patient: <b>${esc(pt.name)}</b> (${age(pt.dob)}y/${pt.sex[0]}) &middot; Allergies: ${pt.allergies?`<span class="al">${esc(pt.allergies)}</span>`:"None"}</div>
+ <table class="grid" style="margin:8px 0"><thead><tr><th>Drug</th><th>Qty</th><th>Directions</th></tr></thead><tbody>${r.lines.map(l=>`<tr><td>${esc(dname(drugById(l.drugId)))}</td><td>${l.qty}</td><td>${esc(l.sig)}</td></tr>`).join("")}</tbody></table>
+ ${r.override?`<div class="info" style="background:#fff3cd">DUR override recorded: ${esc(r.override)}</div>`:""}
+ <div class="alerts" style="max-height:100px;margin-bottom:8px">${al.length?al.map(a=>`<div class="${a[0]}">${a[1]}</div>`).join(""):'<div class="ok">✔ No alerts</div>'}</div>
+ ${["Right patient (name matches Rx and label)","Right drug, strength and form","Right dose, quantity and directions","Label is correct and legible","Expiry / batch checked; no clinical issues"].map(t=>`<div><label><input type="checkbox" class="vc"> ${t}</label></div>`).join("")}</div>`,
+ [{t:"Approve",p:1,fn:()=>{if($$(".vc",o).some(c=>!c.checked)){msg("Complete the full verification checklist before approving.","Verify","⚠️");return false}r.status="Verified";r.verifiedBy=USER.name;save();done()}},{t:"Return to Fill",fn:()=>{r.status="Entered";save();done()}},{t:"Cancel"}],{w:680});
+}
+function dispenseDlg(r,done){
+ const o=modal(`Dispense & Bill - ${r.id}`,`<div style="max-width:480px"><div class="row"><label>Patient</label><b>${esc(ptById(r.patientId).name)}</b></div>
+ <div class="row"><label>Payment Mode</label><select id="f_pm"><option>Cash</option><option>Card</option><option>UPI</option><option>Insurance / Credit</option></select></div>
+ <div class="row"><label>Discount %</label><input id="f_disc" type="number" value="0" min="0" max="30" style="width:70px" data-hint="Discount: percentage discount on MRP as permitted by store policy."></div>
+ <div><label><input type="checkbox" id="f_id"> Patient / representative identity confirmed</label></div>
+ <div><label><input type="checkbox" id="f_cn"> Counselling given (dose, timing, side effects, storage)</label></div></div>`,
+ [{t:"Dispense & Print Bill",p:1,fn:()=>{
+  if(!$("#f_id",o).checked||!$("#f_cn",o).checked){msg("Confirm identity and counselling before dispensing.","Dispense","⚠️");return false}
+  const items=[];
+  for(const l of r.lines){const d=drugById(l.drugId),a=allocate(d,l.qty);if(!a){msg(`Insufficient stock for <b>${esc(dname(d))}</b>. Receive stock via Purchase Entry first.`,"Stock","⛔");return false}
+   a.forEach(x=>items.push({drugId:d.id,name:dname(d),sched:d.sched,batch:x.batch.no,exp:x.batch.exp,qty:x.qty,rate:d.mrp,disc:+$("#f_disc",o).value||0,gst:d.gst}))}
+  const b=makeBill({customer:ptById(r.patientId).name,phone:ptById(r.patientId).phone,doctor:prById(r.prescriberId).name,rx:r.id,mode:$("#f_pm",o).value,items});
+  r.status="Dispensed";r.billId=b.no;r.dispensedOn=today();save();done();setTimeout(()=>showBill(b),50)}},{t:"Cancel"}]);
+}
+function viewRx(r){const pt=ptById(r.patientId),pr=prById(r.prescriberId);
+ modal(`Prescription ${r.id}`,`<div style="max-width:620px"><div class="info">Patient: <b>${esc(pt.name)}</b> &middot; Prescriber: ${esc(pr.name)} (${esc(pr.regNo||"no reg no")}) &middot; Date: ${fmtD(r.date)} &middot; Status: ${r.status}</div>
+ <table class="grid" style="margin-top:8px"><thead><tr><th>Drug</th><th>Qty</th><th>Directions</th><th>Days</th></tr></thead><tbody>${r.lines.map(l=>`<tr><td>${esc(dname(drugById(l.drugId)))}</td><td>${l.qty}</td><td>${esc(l.sig)}</td><td>${l.days||"-"}</td></tr>`).join("")}</tbody></table>${r.notes?`<p>Notes: ${esc(r.notes)}</p>`:""}</div>`,[{t:"Close",p:1}],{w:660});}
+
+/* ============ billing core ============ */
+function makeBill({customer,phone,doctor,rx,mode,items,received}){
+ items.forEach(it=>{const d=drugById(it.drugId),b=d.batches.find(x=>x.no===it.batch);if(b)b.qty-=it.qty});
+ let gross=0,disc=0,gst=0;
+ items.forEach(it=>{const g=it.qty*it.rate,dd=g*it.disc/100,a=g-dd;it.amt=a;gross+=g;disc+=dd;gst+=a*it.gst/(100+it.gst)});
+ const sub=gross-disc,net=Math.round(sub);
+ const b={no:"INV"+DB.cnt.bill++,date:today(),time:new Date().toLocaleTimeString("en-GB"),customer,phone,doctor,rx,mode,items,gross,disc,gst,round:net-sub,net,user:USER.name,received:received||net};
+ DB.bills.push(b);save();refreshWin("dash");refreshWin("inv");return b;
+}
+function showBill(b){
+ if(!b)return;
+ const o=modal(`Invoice ${b.no}`,`<div class="inv" id="invp"><h4>${esc(DB.store.toUpperCase())}</h4><div style="text-align:center">${esc(USER.store)}<br>Drug Lic: KA-20/21-DEMO &middot; GSTIN: 29DEMO0000X1Z5<br>** TRAINING BILL - NOT A VALID TAX INVOICE **</div><hr>
+ Bill No: <b>${b.no}</b> &nbsp; Date: ${fmtD(b.date)} ${b.time}<br>Customer: ${esc(b.customer||"Walk-in")} ${b.phone?"("+esc(b.phone)+")":""}<br>${b.doctor?"Doctor: "+esc(b.doctor)+"<br>":""}${b.rx?"Rx No: "+b.rx+"<br>":""}<hr>
+ <table><tr><th>Item</th><th>Batch</th><th>Exp</th><th class="r">Qty</th><th class="r">Rate</th><th class="r">Amt</th></tr>
+ ${b.items.map(i=>`<tr><td>${esc(i.name)}</td><td>${esc(i.batch)}</td><td>${fmtE(i.exp)}</td><td class="r">${i.qty}</td><td class="r">${m2(i.rate)}</td><td class="r">${m2(i.amt)}</td></tr>`).join("")}</table><hr>
+ <table><tr><td>Gross</td><td class="r">${m2(b.gross)}</td></tr><tr><td>Discount</td><td class="r">-${m2(b.disc)}</td></tr><tr><td>Round off</td><td class="r">${m2(b.round)}</td></tr><tr><td><b>NET PAYABLE</b></td><td class="r"><b>${m2(b.net)}</b></td></tr><tr><td>(incl. GST ${m2(b.gst)})</td><td></td></tr><tr><td>Paid by: ${esc(b.mode)}</td><td class="r"></td></tr></table><hr><div style="text-align:center">Thank you. Get well soon!<br>Billed by: ${esc(b.user)}</div></div>`,
+ [{t:"Print",p:1,fn:()=>{printEl($("#invp",o));return false}},{t:"Close"}],{w:600});
+}
+
+/* ============ retail billing ============ */
+function billing(){openWin("bill","Retail Billing",buildBill)}
+function buildBill(p){
+ let L=[{}];
+ p.innerHTML=`<fieldset><legend>Counter Bill (Point of Sale)</legend>
+ <div class="row"><label>Bill No.</label><input id="b_no" readonly style="width:100px"><label style="width:50px">Date</label><input id="b_date" type="date" readonly style="width:130px">
+  <label style="width:80px">Customer</label><input id="b_cust" placeholder="Walk-in" autocomplete="off" data-hint="Customer: type name (or pick a registered patient). Leave blank for a walk-in cash customer, allowed only for OTC items."><label style="width:50px">Phone</label><input id="b_ph" style="width:120px" data-hint="Phone: mobile number for loyalty / refill reminders.">
+  <label style="width:70px">Doctor</label><input id="b_doc" placeholder="Dr. ..." data-hint="Doctor: prescriber name. REQUIRED when any Schedule H / H1 medicine is sold on the counter."></div></fieldset>
+ <div class="grid-wrap" style="max-height:40vh"><table class="grid"><thead><tr><th>#</th><th style="min-width:300px">Item</th><th>Sch</th><th>Batch</th><th>Exp</th><th>Stock</th><th>Qty</th><th>MRP</th><th>Disc %</th><th>GST %</th><th>Amount</th><th></th></tr></thead><tbody id="b_tb"></tbody></table></div>
+ <div class="bar"><div class="alerts" id="b_al"></div>
+  <div class="tot"><div><span>Gross</span><span id="b_g">0.00</span></div><div><span>Discount</span><span id="b_d">0.00</span></div><div><span>GST (included)</span><span id="b_gst">0.00</span></div><div><span>Round off</span><span id="b_r">0.00</span></div><div class="net"><span>NET</span><span id="b_net">0.00</span></div>
+   <div class="row" style="margin-top:6px"><label style="width:80px">Pay by</label><select id="b_pm" data-hint="Payment mode: how the customer pays."><option>Cash</option><option>Card</option><option>UPI</option><option>Credit</option></select></div>
+   <div class="row"><label style="width:80px">Received</label><input id="b_rec" type="number" style="width:90px" data-hint="Received: amount handed over by the customer. Balance to return is shown below."><b id="b_ret" style="margin-left:6px"></b></div></div>
+  <div class="acts"><button class="p" id="b_save">Save &amp; Print (F9)</button><button id="b_hold">Hold Bill</button><button id="b_resume">Recall Held</button><button id="b_clr">Clear (F8)</button></div></div>`;
+ const tb=$("#b_tb",p);let net=0;
+ attachSearch($("#b_cust"),ptSearch,ptRow,x=>{$("#b_cust").value=x.name;$("#b_ph").value=x.phone});
+ const reset=()=>{L=[{}];$("#b_no").value="INV"+DB.cnt.bill;$("#b_date").value=today();["b_cust","b_ph","b_doc","b_rec"].forEach(i=>$("#"+i).value="");draw()};
+ function calc(){
+  let g=0,d=0,gs=0;L.forEach((l,i)=>{if(!l.drug)return;const a0=(+l.qty||0)*l.drug.mrp,dd=a0*(+l.disc||0)/100,a=a0-dd;g+=a0;d+=dd;gs+=a*l.drug.gst/(100+l.drug.gst);const c=$(`tr[data-i="${i}"] .amt`,tb);if(c)c.textContent=m2(a)});
+  net=Math.round(g-d);$("#b_g").textContent=m2(g);$("#b_d").textContent=m2(d);$("#b_gst").textContent=m2(gs);$("#b_r").textContent=m2(net-(g-d));$("#b_net").textContent=m2(net);
+  const rec=+$("#b_rec").value;$("#b_ret").textContent=rec?(rec>=net?"Return: "+rs(rec-net):"Short: "+rs(net-rec)):"";
+  const al=[];L.forEach(l=>{if(!l.drug)return;const b=l.drug.batches.find(x=>x.no===l.batch);
+   if(b&&+l.qty>b.qty)al.push(["err",`Qty ${l.qty} exceeds batch ${b.no} stock (${b.qty}) for ${esc(l.drug.name)}.`]);
+   if(b&&b.exp<=today())al.push(["err",`${esc(l.drug.name)} batch ${b.no} is EXPIRED - cannot sell.`]);
+   else if(b&&daysTo(b.exp)<=90)al.push(["warn",`${esc(l.drug.name)} batch ${b.no} is near expiry (${fmtE(b.exp)}).`]);
+   if(l.drug.sched!=="OTC"&&!$("#b_doc").value.trim())al.push(["warn",`${esc(l.drug.name)} is Schedule ${l.drug.sched}: prescription required - enter Doctor name.`])});
+  $("#b_al").innerHTML=al.length?al.map(a=>`<div class="${a[0]}">${a[0]==="err"?"⛔":"⚠️"} ${a[1]}</div>`).join(""):'<div class="ok">✔ Ready. Search an item, enter qty, press Enter.</div>';
+  return al;
+ }
+ function draw(fr,fc){
+  tb.innerHTML=L.map((l,i)=>{const d=l.drug,b=d&&d.batches.find(x=>x.no===l.batch);return `<tr data-i="${i}"><td class="c">${i+1}</td>
+  <td><input class="dsr" value="${esc(d?dname(d):"")}" autocomplete="off" placeholder="Search item / scan barcode..." data-hint="Item: type name or scan barcode, pick with arrow keys + Enter. The batch with the earliest expiry (FEFO) is picked automatically."></td>
+  <td class="c">${d?d.sched:""}</td>
+  <td>${d?`<select data-f="batch">${d.batches.filter(x=>x.qty>0).map(x=>`<option value="${esc(x.no)}" ${x.no===l.batch?"selected":""}>${esc(x.no)}</option>`).join("")}</select>`:""}</td>
+  <td class="c">${b?fmtE(b.exp):""}</td><td class="c">${b?b.qty:""}</td>
+  <td><input class="n" data-f="qty" value="${esc(l.qty||"")}" inputmode="numeric" style="width:60px" data-hint="Qty: number of units sold (tablets / bottles)."></td>
+  <td class="r">${d?m2(d.mrp):""}</td><td><input class="n" data-f="disc" value="${esc(l.disc||"")}" style="width:55px" inputmode="decimal" data-hint="Disc %: discount allowed on this line (leave blank for none)."></td><td class="c">${d?d.gst:""}</td><td class="r amt">0.00</td><td class="c"><span class="del">&#10005;</span></td></tr>`}).join("");
+  $$(".dsr",tb).forEach((inp,i)=>attachSearch(inp,drugSearch,drugRow,d=>{const f=fefo(d)[0];L[i]={drug:d,batch:(f||d.batches[0]||{}).no,qty:L[i].qty||"1",disc:L[i].disc||""};if(i===L.length-1)L.push({});draw(i,"qty")}));
+  if(fr!=null){const t=$(`tr[data-i="${fr}"] ${fc==="qty"?'[data-f="qty"]':".dsr"}`,tb);if(t){t.focus();t.select&&t.select()}}
+  calc();
+ }
+ tb.addEventListener("input",e=>{const tr=e.target.closest("tr"),f=e.target.dataset.f;if(!f)return;L[+tr.dataset.i][f]=e.target.value;calc()});
+ tb.addEventListener("change",e=>{if(e.target.dataset.f==="batch"){draw()}});
+ tb.addEventListener("keydown",e=>{if(e.key!=="Enter"||e.target.tagName!=="INPUT")return;const tr=e.target.closest("tr"),i=+tr.dataset.i;
+  if(e.target.classList.contains("dsr"))return;e.preventDefault();
+  const order=[...tr.querySelectorAll("input")],k=order.indexOf(e.target);
+  if(k<order.length-1)order[k+1].focus();else{if(i===L.length-1){L.push({});draw(i+1)}else $$(".dsr",tb)[i+1].focus()}});
+ tb.addEventListener("click",e=>{if(e.target.classList.contains("del")){L.splice(+e.target.closest("tr").dataset.i,1);if(!L.length)L.push({});draw()}});
+ ["b_doc","b_rec"].forEach(i=>$("#"+i).addEventListener("input",calc));
+ $("#b_clr").onclick=()=>ask("Clear this bill?",reset,"Clear");
+ $("#b_hold").onclick=()=>{const ls=L.filter(l=>l.drug);if(!ls.length)return msg("Nothing to hold.","Hold","⚠️");
+  DB.held.push({cust:$("#b_cust").value,ph:$("#b_ph").value,doc:$("#b_doc").value,lines:ls.map(l=>({drugId:l.drug.id,batch:l.batch,qty:l.qty,disc:l.disc}))});save();reset();msg("Bill put on hold. Use <b>Recall Held</b> to bring it back.","Hold","⏸️")};
+ $("#b_resume").onclick=()=>{if(!DB.held.length)return msg("No held bills.","Recall","ℹ️");
+  const h=DB.held.pop();save();$("#b_cust").value=h.cust;$("#b_ph").value=h.ph;$("#b_doc").value=h.doc;L=h.lines.map(x=>({drug:drugById(x.drugId),batch:x.batch,qty:x.qty,disc:x.disc}));L.push({});draw()};
+ $("#b_save").onclick=()=>{
+  const ls=L.filter(l=>l.drug);if(!ls.length)return msg("Add at least one item.","Save Bill","⚠️");
+  if(ls.some(l=>!(+l.qty>0)))return msg("Enter a quantity for every item.","Save Bill","⚠️");
+  const al=calc(),er=al.find(a=>a[0]==="err");if(er)return msg(er[1],"Cannot save","⛔");
+  const sch=ls.some(l=>l.drug.sched!=="OTC");
+  if(sch&&!$("#b_doc").value.trim())return msg("<b>Schedule H/H1</b> medicine in this bill: enter the prescribing doctor's name (and customer name) before saving.","Compliance Check","⛔");
+  if(ls.some(l=>l.drug.sched==="H1")&&!$("#b_cust").value.trim())return msg("Schedule H1 requires the patient's name for the register.","Compliance Check","⛔");
+  const b=makeBill({customer:$("#b_cust").value.trim(),phone:$("#b_ph").value,doctor:$("#b_doc").value.trim(),mode:$("#b_pm").value,received:+$("#b_rec").value,
+   items:ls.map(l=>{const bt=l.drug.batches.find(x=>x.no===l.batch);return{drugId:l.drug.id,name:dname(l.drug),sched:l.drug.sched,batch:l.batch,exp:bt.exp,qty:+l.qty,rate:l.drug.mrp,disc:+l.disc||0,gst:l.drug.gst}})});
+  reset();showBill(b);
+ };
+ p.addEventListener("keydown",e=>{if(e.key==="F9"){e.preventDefault();$("#b_save").click()}if(e.key==="F8"){e.preventDefault();$("#b_clr").click()}});
+ reset();
+}
+
+/* ============ inventory ============ */
+function inventory(){openWin("inv","Inventory",p=>{
+ let q="",flt="All";
+ p.innerHTML=`<div class="tb2"><input class="srch" placeholder="Search item / generic / rack..." data-hint="Search: type part of the drug name, generic name or rack number."><select id="i_f"><option>All</option><option>Low Stock</option><option>Near Expiry</option><option>Expired</option><option>Schedule H/H1</option></select><button class="p" data-a="add">New Item</button><button data-a="batch">Batches / Adjust</button><button data-a="edit">Edit Item</button></div>
+ <div class="grid-wrap" style="max-height:74vh"><table class="grid"><thead><tr><th>Code</th><th>Item</th><th>Generic</th><th>Sch</th><th>Rack</th><th>Stock</th><th>Reorder</th><th>Next Expiry</th><th>MRP</th><th>GST%</th><th>Status</th></tr></thead><tbody></tbody></table></div>`;
+ let sel=null;const tb=$("tbody",p);
+ const status=d=>{const bs=d.batches.filter(b=>b.qty>0),out=[];if(bs.some(b=>b.exp<=today()))out.push('<span class="bdg r">Expired batch</span>');if(bs.some(b=>b.exp>today()&&daysTo(b.exp)<=90))out.push('<span class="bdg a">Near expiry</span>');if(stock(d)<=d.ro)out.push('<span class="bdg r">Low</span>');return out.join(" ")||'<span class="bdg g">OK</span>'};
+ const draw=()=>{
+  const rows=DB.drugs.filter(d=>(!q||(dname(d)+d.gen+d.rack).toLowerCase().includes(q))&&(flt==="All"||(flt==="Low Stock"&&stock(d)<=d.ro)||(flt==="Near Expiry"&&d.batches.some(b=>b.qty>0&&b.exp>today()&&daysTo(b.exp)<=90))||(flt==="Expired"&&d.batches.some(b=>b.qty>0&&b.exp<=today()))||(flt==="Schedule H/H1"&&d.sched!=="OTC")));
+  tb.innerHTML=rows.map(d=>{const ne=d.batches.filter(b=>b.qty>0).map(b=>b.exp).sort()[0];return `<tr data-id="${d.id}" class="${d.id===sel?"sel":""}"><td>${d.id}</td><td>${esc(dname(d))}</td><td>${esc(d.gen)}</td><td class="c">${d.sched}</td><td class="c">${esc(d.rack)}</td><td class="r"><b>${totalStock(d)}</b></td><td class="r">${d.ro}</td><td class="c">${fmtE(ne)}</td><td class="r">${m2(d.mrp)}</td><td class="r">${d.gst}</td><td>${status(d)}</td></tr>`}).join("")||'<tr><td colspan="11">No items.</td></tr>'};
+ const itemForm=d=>{const n=!d;d=d||{name:"",gen:"",str:"",form:"Tablet",sched:"OTC",cls:[""],mrp:"",gst:12,rack:"",ro:20};
+  modal(n?"New Item":"Edit Item",`<div class="row"><label>Item Name *</label><input id="f_n" class="wide" value="${esc(d.name)}" data-hint="Item name as printed on pack (brand or generic)."></div>
+  <div class="row"><label>Generic Name</label><input id="f_g" class="wide" value="${esc(d.gen)}" data-hint="Generic (salt) name - used for substitution and interaction checks."></div>
+  <div class="row"><label>Strength</label><input id="f_s" value="${esc(d.str)}" data-hint="Strength e.g. 500mg, 5% w/w, 100ml."><label style="width:60px">Form</label><select id="f_f">${["Tablet","Capsule","Syrup","Injection","Ointment","Inhaler","Drops","Sachet","Other"].map(x=>`<option ${x===d.form?"selected":""}>${x}</option>`).join("")}</select></div>
+  <div class="row"><label>Schedule</label><select id="f_sc" data-hint="Schedule: OTC = sold without prescription; H = prescription required; H1 = prescription + register entry."><option ${d.sched==="OTC"?"selected":""}>OTC</option><option ${d.sched==="H"?"selected":""}>H</option><option ${d.sched==="H1"?"selected":""}>H1</option></select><label style="width:60px">Class</label><input id="f_c" value="${esc(d.cls[0])}" data-hint="Therapeutic class e.g. statin, ppi, nsaid - drives duplicate-therapy and allergy alerts."></div>
+  <div class="row"><label>MRP / unit *</label><input id="f_m" type="number" step="0.01" value="${d.mrp}" style="width:90px" data-hint="MRP per unit (tablet / bottle), inclusive of GST."><label style="width:60px">GST %</label><input id="f_t" type="number" value="${d.gst}" style="width:60px" data-hint="GST rate: 5% or 12% for most medicines, 18% for some products."></div>
+  <div class="row"><label>Rack</label><input id="f_r" value="${esc(d.rack)}" style="width:70px" data-hint="Rack / shelf location to speed up picking."><label style="width:90px">Reorder Level</label><input id="f_o" type="number" value="${d.ro}" style="width:70px" data-hint="Reorder level: stock at or below this raises a Low Stock alert."></div>`,
+  [{t:"Save",p:1,fn:o=>{const v=i=>$("#"+i,o).value.trim();if(!v("f_n")||!(+v("f_m")>0)){msg("Item name and a valid MRP are required.","Validation","⚠️");return false}
+   const rec={name:v("f_n"),gen:v("f_g")||v("f_n"),str:v("f_s")||"-",form:v("f_f"),sched:v("f_sc"),cls:[v("f_c").toLowerCase()||"general"],mrp:+v("f_m"),gst:+v("f_t"),rack:v("f_r"),ro:+v("f_o")};
+   if(n){rec.id=DB.cnt.drug++;rec.batches=[];DB.drugs.push(rec);sel=rec.id}else Object.assign(d,rec,{cls:rec.cls});save();draw()}},{t:"Cancel"}],{w:480});};
+ const batchDlg=d=>{
+  const o=modal(`Batches - ${esc(dname(d))}`,`<table class="grid"><thead><tr><th>Batch</th><th>Expiry</th><th>Qty</th><th>Purchase Rate</th><th>Status</th></tr></thead><tbody>${d.batches.map((b,i)=>`<tr><td>${esc(b.no)}</td><td>${fmtE(b.exp)}</td><td><input type="number" class="n bq" data-i="${i}" value="${b.qty}" data-hint="Physical count: correct the quantity after a stock-take; changes are saved when you press Save Adjustments."></td><td class="r">${m2(b.pur)}</td><td>${b.exp<=today()?'<span class="bdg r">Expired</span>':daysTo(b.exp)<=90?'<span class="bdg a">Near expiry</span>':'<span class="bdg g">OK</span>'}</td></tr>`).join("")||"<tr><td colspan=5>No batches. Use Purchase Entry to receive stock.</td></tr>"}</tbody></table>`,
+  [{t:"Save Adjustments",p:1,fn:()=>{$$(".bq",o).forEach(i=>{d.batches[+i.dataset.i].qty=Math.max(0,+i.value||0)});save();draw()}},{t:"Close"}],{w:560});};
+ p.onclick=e=>{const tr=e.target.closest("tbody tr");if(tr&&tr.dataset.id){sel=+tr.dataset.id;draw()}
+  const a=e.target.dataset.a;if(a==="add")itemForm();else if(a){const d=drugById(sel);if(!d)return msg("Select an item first.","Inventory","⚠️");a==="edit"?itemForm(d):batchDlg(d)}};
+ p.ondblclick=e=>{const tr=e.target.closest("tbody tr");if(tr){sel=+tr.dataset.id;batchDlg(drugById(sel))}};
+ $(".srch",p).oninput=e=>{q=e.target.value.toLowerCase();draw()};$("#i_f",p).onchange=e=>{flt=e.target.value;draw()};
+ draw();
+},true)}
+
+/* ============ purchase entry ============ */
+function purchase(){openWin("pur","Purchase Entry (GRN)",p=>{
+ let L=[{}];
+ p.innerHTML=`<fieldset><legend>Supplier Invoice</legend><div class="row"><label>GRN No.</label><input readonly id="p_no" style="width:100px" value="GRN${DB.cnt.pur}"><label style="width:70px">Supplier *</label><select id="p_sup" data-hint="Supplier: the wholesaler who issued the invoice you are receiving."><option value="">-- select --</option>${DB.sup.map(s=>`<option value="${s.id}">${esc(s.name)}</option>`).join("")}</select>
+ <label style="width:80px">Invoice No. *</label><input id="p_inv" style="width:120px" data-hint="Invoice No.: number printed on the supplier's invoice."><label style="width:70px">Inv. Date</label><input type="date" id="p_dt" value="${today()}" data-hint="Invoice date as printed on the supplier invoice."></div></fieldset>
+ <div class="grid-wrap" style="max-height:44vh"><table class="grid"><thead><tr><th>#</th><th style="min-width:300px">Item</th><th>Batch *</th><th>Expiry *</th><th>Qty *</th><th>Free</th><th>Pur. Rate</th><th>MRP</th><th>Amount</th><th></th></tr></thead><tbody id="p_tb"></tbody></table></div>
+ <div class="bar"><div class="alerts"><div>Tip: check batch number, expiry date and MRP against the physical strip/carton before entering.</div></div><div class="tot"><div class="net"><span>Invoice Total</span><span id="p_tot">0.00</span></div></div><div class="acts"><button class="p" id="p_save">Save GRN (F9)</button></div></div>`;
+ const tb=$("#p_tb",p);
+ const tot=()=>{let t=0;L.forEach((l,i)=>{const a=l.drug?(+l.qty||0)*(+l.rate||0):0;t+=a;const c=$(`tr[data-i="${i}"] .amt`,tb);if(c)c.textContent=m2(a)});$("#p_tot").textContent=m2(t);return t};
+ function draw(fr){tb.innerHTML=L.map((l,i)=>`<tr data-i="${i}"><td class="c">${i+1}</td><td><input class="dsr" value="${esc(l.drug?dname(l.drug):"")}" autocomplete="off" placeholder="Search item..." data-hint="Item: pick the medicine being received. If it is new, create it first in Inventory > New Item."></td>
+  <td><input data-f="batch" value="${esc(l.batch||"")}" style="width:90px" data-hint="Batch no. printed on the pack - must be exact for recalls."></td><td><input type="month" data-f="exp" value="${l.exp||""}" data-hint="Expiry: month and year printed on the pack."></td>
+  <td><input class="n" data-f="qty" value="${esc(l.qty||"")}" data-hint="Qty: units received (billed quantity)."></td><td><input class="n" data-f="free" value="${esc(l.free||"")}" style="width:50px" data-hint="Free: scheme / bonus units given free by the supplier."></td>
+  <td><input class="n" data-f="rate" value="${esc(l.rate||"")}" data-hint="Purchase rate per unit excluding GST, from the invoice."></td><td class="r">${l.drug?m2(l.drug.mrp):""}</td><td class="r amt">0.00</td><td class="c"><span class="del">&#10005;</span></td></tr>`).join("");
+  $$(".dsr",tb).forEach((inp,i)=>attachSearch(inp,drugSearch,drugRow,d=>{L[i].drug=d;L[i].rate=L[i].rate||m2(d.mrp*0.65);if(i===L.length-1)L.push({});draw(i);const b=$(`tr[data-i="${i}"] [data-f="batch"]`,tb);b&&b.focus()}));
+  tot();if(fr!=null){}}
+ tb.addEventListener("input",e=>{const f=e.target.dataset.f;if(f){L[+e.target.closest("tr").dataset.i][f]=e.target.value;tot()}});
+ tb.addEventListener("keydown",e=>{if(e.key!=="Enter"||e.target.classList.contains("dsr"))return;e.preventDefault();const tr=e.target.closest("tr"),o=[...tr.querySelectorAll("input")],k=o.indexOf(e.target);if(k<o.length-1)o[k+1].focus()});
+ tb.addEventListener("click",e=>{if(e.target.classList.contains("del")){L.splice(+e.target.closest("tr").dataset.i,1);if(!L.length)L.push({});draw()}});
+ $("#p_save").onclick=()=>{
+  const ls=L.filter(l=>l.drug);
+  if(!$("#p_sup").value||!$("#p_inv").value.trim())return msg("Select the supplier and enter the invoice number.","GRN","⚠️");
+  if(!ls.length)return msg("Add at least one item.","GRN","⚠️");
+  const bad=ls.find(l=>!l.batch||!l.exp||!(+l.qty>0));if(bad)return msg(`Batch, expiry and quantity are required for <b>${esc(bad.drug.name)}</b>.`,"GRN","⚠️");
+  const total=tot();
+  ls.forEach(l=>{const exp=l.exp+"-28",q=(+l.qty||0)+(+l.free||0),ex=l.drug.batches.find(b=>b.no===l.batch);if(ex)ex.qty+=q;else l.drug.batches.push({no:l.batch.trim(),exp,qty:q,pur:+l.rate||0})});
+  const g={no:"GRN"+DB.cnt.pur++,date:$("#p_dt").value,supplierId:+$("#p_sup").value,invoice:$("#p_inv").value.trim(),total,lines:ls.length};DB.purchases.push(g);save();refreshWin("inv");
+  msg(`<b>${g.no}</b> saved. Stock updated for ${ls.length} item(s).`,"Purchase Saved","✅",()=>{closeWin("pur");purchase()});
+ };
+ p.addEventListener("keydown",e=>{if(e.key==="F9"){e.preventDefault();$("#p_save").click()}});
+ draw();
+})}
+
+/* ============ reports ============ */
+function reports(which){openWin("rep","Reports",p=>{
+ const R={sales:"Daily Sales Summary",stk:"Stock Valuation",exp:"Expiry Report (90 days)",low:"Low Stock Report",sch:"Schedule H/H1 Register",rxr:"Prescription Register",pur:"Purchase Register"};
+ let cur=S.rcur||"sales";if(which){cur=which;S.rcur=which}
+ const hdr=t=>`<h4>${esc(DB.store)}</h4><p>${esc(USER.store)}<br><b>${t}</b> &middot; printed ${new Date().toLocaleString("en-GB")}</p>`;
+ const T=(h,rows,r=[])=>`<table><thead><tr>${h.map(x=>`<th>${x}</th>`).join("")}</tr></thead><tbody>${rows.map(rw=>`<tr>${rw.map((c,i)=>`<td class="${r.includes(i)?"r":""}">${c}</td>`).join("")}</tr>`).join("")||`<tr><td colspan="${h.length}">No data.</td></tr>`}</tbody></table>`;
+ const body={
+  sales:()=>{const f=$("#r_from")?.value||today(),t=$("#r_to")?.value||today();const bs=DB.bills.filter(b=>b.date>=f&&b.date<=t);
+   return hdr(`Sales ${fmtD(f)} to ${fmtD(t)}`)+T(["Bill No","Date","Customer","Doctor","Mode","Net"],bs.map(b=>[b.no,fmtD(b.date),esc(b.customer||"Walk-in"),esc(b.doctor||"-"),b.mode,m2(b.net)]),[5])+`<p style="text-align:right"><b>Total: ${rs(bs.reduce((s,b)=>s+b.net,0))}</b> (${bs.length} bills)</p>`},
+  stk:()=>{let v=0;const rows=DB.drugs.map(d=>{const a=totalStock(d)*(d.batches[0]?.pur||0);v+=a;return[esc(dname(d)),totalStock(d),m2(d.batches[0]?.pur||0),m2(a)]});return hdr("Stock Valuation (at purchase rate)")+T(["Item","Qty","Pur. Rate","Value"],rows,[1,2,3])+`<p style="text-align:right"><b>Total value: ${rs(v)}</b></p>`},
+  exp:()=>{const rows=[];DB.drugs.forEach(d=>d.batches.filter(b=>b.qty>0&&daysTo(b.exp)<=90).forEach(b=>rows.push([esc(dname(d)),b.no,fmtE(b.exp),b.qty,daysTo(b.exp)<=0?"EXPIRED":daysTo(b.exp)+" days"])));return hdr("Expiry Report")+T(["Item","Batch","Expiry","Qty","Status"],rows,[3])},
+  low:()=>hdr("Low Stock / Reorder Report")+T(["Item","Stock","Reorder Level","Suggested Order"],DB.drugs.filter(d=>stock(d)<=d.ro).map(d=>[esc(dname(d)),stock(d),d.ro,d.ro*2-stock(d)]),[1,2,3]),
+  sch:()=>{const rows=[];DB.bills.forEach(b=>b.items.filter(i=>i.sched!=="OTC").forEach(i=>rows.push([fmtD(b.date),b.no,esc(b.customer||"-"),esc(b.doctor||"-"),esc(i.name),"Sch "+i.sched,i.batch,i.qty])));return hdr("Schedule H / H1 Dispensing Register")+T(["Date","Bill","Patient","Prescriber","Drug","Sch","Batch","Qty"],rows,[7])},
+  rxr:()=>hdr("Prescription Register")+T(["Rx No","Date","Patient","Prescriber","Items","Status"],DB.rx.map(r=>[r.id,fmtD(r.date),esc(ptById(r.patientId)?.name),esc(prById(r.prescriberId)?.name),r.lines.length,r.status])),
+  pur:()=>hdr("Purchase Register")+T(["GRN","Date","Supplier","Invoice","Items","Total"],DB.purchases.map(g=>[g.no,fmtD(g.date),esc(DB.sup.find(s=>s.id===g.supplierId)?.name),esc(g.invoice),g.lines,m2(g.total)]),[5])
+ };
+ p.innerHTML=`<div class="split"><div class="list">${Object.entries(R).map(([k,v])=>`<div data-k="${k}" class="${k===cur?"on":""}">${v}</div>`).join("")}</div><div>
+ <div class="tb2" id="r_f" style="${cur==="sales"?"":"display:none"}">From <input type="date" id="r_from" value="${today()}" data-hint="From date for the sales report."> To <input type="date" id="r_to" value="${today()}" data-hint="To date for the sales report."> <button id="r_go" class="p">View</button></div>
+ <div class="tb2"><button id="r_pr">Print Report</button></div><div class="rep" id="r_out"></div></div></div>`;
+ const out=()=>{$("#r_out",p).innerHTML=body[cur]()};
+ p.onclick=e=>{const k=e.target.dataset.k;if(k){S.rcur=k;reports(k);refreshWin("rep")}if(e.target.id==="r_go")out();if(e.target.id==="r_pr")printEl($("#r_out",p))};
+ out();
+},true)}
+
+/* ============ utilities ============ */
+function backup(){const a=document.createElement("a");a.href=URL.createObjectURL(new Blob([JSON.stringify(DB)],{type:"application/json"}));a.download="pharmadesk-training-backup-"+today()+".json";a.click()}
+function restore(){const i=document.createElement("input");i.type="file";i.accept=".json";i.onchange=()=>{const r=new FileReader();r.onload=()=>{try{const d=JSON.parse(r.result);if(!d.drugs)throw 0;DB=d;save();msg("Backup restored.","Restore","✅");$$(".tab").length&&Object.keys(W).filter(k=>k!=="cur").forEach(refreshWin)}catch(e){msg("Invalid backup file.","Restore","⛔")}};r.readAsText(i.files[0])};i.click()}
+function resetData(){ask("Reset ALL training data (patients, stock, bills, prescriptions) to the original sample data?",()=>{DB=seed();save();Object.keys(W).filter(k=>k!=="cur").forEach(closeWin);dashboard();msg("Training data has been reset.","Reset","✅")},"Reset Training Data")}
+
+/* ============ training guide ============ */
+function guide(){openWin("guide","Training Guide",p=>{
+ const EX=[
+ ["Register a new patient","Open <b>Masters &gt; Patients</b>, click New and enter name, DOB, mobile and allergies. Note which fields are mandatory.","pt"],
+ ["Enter a prescription (Rajesh Kumar, penicillin allergy)","Press <b>F2</b>. Select patient <i>Rajesh Kumar</i>, prescriber <i>Dr. A. Menon</i>. Add <b>Amoxicillin 500mg</b>, qty 15, Sig <i>1 tab TDS</i>. Observe the allergy alert and the override step when saving.","rx"],
+ ["Auto-calculate quantity","In a Rx line enter Sig <b>1-0-1 after food</b> then Days <b>5</b> (leave Qty empty). The system calculates quantity 10.","rx"],
+ ["Move a prescription through the workflow","Open <b>Rx Queue (F3)</b>. Take RX1001 through <b>Fill &rarr; Verify &rarr; Dispense</b>. Note the checklist at each stage and the label &amp; bill printed.","queue"],
+ ["Spot a drug interaction","New Rx for <i>Mohammed Irfan</i>: add <b>Warfarin 5mg</b> and <b>Aspirin 75mg</b>. Read the alert. What should the pharmacist do?","rx"],
+ ["Schedule H1 compliance","New Rx with <b>Tramadol</b> prescribed by <i>Dr. R. Das</i> (no registration number). Try to save and see why it is blocked.","rx"],
+ ["Counter sale of an OTC item","Open <b>Retail Billing (F4)</b>. Sell Paracetamol x 10 and ORS x 2 to a walk-in customer. Enter amount received and see the balance. Save &amp; print.","bill"],
+ ["Counter sale of a Schedule H item","In Billing add <b>Metformin SR</b>. Try saving without a doctor name; then enter one and save.","bill"],
+ ["Receive stock (Purchase Entry)","Open Purchase Entry. Receive <b>Atorvastatin 20mg</b> (low stock) from MediSource: batch AT999, expiry 12/2028, qty 200, rate 7.","pur"],
+ ["Check inventory alerts","Open Inventory, filter <b>Low Stock</b> and <b>Near Expiry</b>. Which batches should be returned to the supplier?","inv"],
+ ["Review the Schedule H/H1 register","After the sales above, open <b>Reports &gt; Schedule H/H1 Register</b> and confirm your entries appear.","rep"]];
+ const done=DB.guide;
+ p.innerHTML=`<h3>Practice Exercises</h3><p>Everything here is dummy data &ndash; click <b>Go</b> to open the right screen, practise, then tick the exercise. Click inside any field to see a hint about what to enter at the bottom of the screen.</p>
+ ${EX.map((e,i)=>`<div class="ex ${done[i]?"done":""}"><input type="checkbox" data-i="${i}" ${done[i]?"checked":""}><div style="flex:1"><b>${i+1}. ${e[0]}</b><p>${e[1]}</p></div><button data-g="${e[2]}">Go</button></div>`).join("")}
+ <p><b>Keyboard shortcuts:</b> F1 Guide &middot; F2 New Rx &middot; F3 Rx Queue &middot; F4 Billing &middot; F6 Inventory &middot; F7 Patients &middot; F8 Reports (Clear on forms) &middot; F9 Save &middot; Esc close dialog.</p>`;
+ p.onclick=e=>{if(e.target.dataset.g)NAV[e.target.dataset.g][2]();if(e.target.type==="checkbox"){DB.guide[e.target.dataset.i]=e.target.checked;save();e.target.closest(".ex").classList.toggle("done",e.target.checked)}};
+})}
+
+load();
+</script>
+</body>
+</html>
