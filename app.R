@@ -9,14 +9,14 @@
 
 # -----------------------------------------------------------------------------------------
 # SECTION 1: LIBRARY INITIALIZATION & DEPENDENCIES
+# (Clinical formulas, the rules engine and the synthetic cohort live in R/ and are sourced
+#  automatically by Shiny.)
 # -----------------------------------------------------------------------------------------
 library(shiny)
 library(shinydashboard)
 library(ggplot2)
-library(dplyr)
 library(corrplot)
 library(DT)
-library(tidyr)
 
 # -----------------------------------------------------------------------------------------
 # SECTION 2: USER INTERFACE (UI) ARCHITECTURE
@@ -34,12 +34,16 @@ ui <- dashboardPage(
       menuItem("1. Patient Intake & Vitals", tabName = "intake", icon = icon("user-md")),
       menuItem("2. Biomarker Risk Engine", tabName = "biomarkers", icon = icon("tint")),
       menuItem("3. Pharmacovigilance Alerts", tabName = "safety", icon = icon("exclamation-triangle")),
-      menuItem("4. Population Analytics", tabName = "analytics", icon = icon("chart-line"))
+      menuItem("4. Cohort Analytics (Synthetic)", tabName = "analytics", icon = icon("chart-line"))
     )
   ),
   
   # --- 2.3 Dashboard Body & Tab Architecture ---
   dashboardBody(
+    tags$div(class = "callout callout-warning", style = "margin: 0 0 15px 0;",
+             tags$b("Decision support only. "),
+             "Outputs are screening aids for qualified clinicians and do not replace clinical judgement.",
+             " Do not enter identifiable patient information."),
     tabItems(
       
       # -----------------------------------------------------------
@@ -48,26 +52,25 @@ ui <- dashboardPage(
       tabItem(tabName = "intake",
               fluidRow(
                 box(title = "Demographics & Anthropometrics", status = "primary", solidHeader = TRUE, width = 4,
-                    numericInput("age", "Age (years):", value = 55, min = 18, max = 100),
+                    numericInput("age", "Age (years):", value = 55, min = 18, max = 110),
                     selectInput("sex", "Biological Sex:", choices = c("Male", "Female")),
-                    numericInput("weight", "Weight (kg):", value = 75, min = 30, max = 200),
+                    numericInput("weight", "Weight (kg):", value = 75, min = 20, max = 400),
                     numericInput("height", "Height (cm):", value = 165, min = 100, max = 250),
-                    numericInput("waist", "Waist Circumference (cm):", value = 90, min = 50, max = 150)
+                    numericInput("waist", "Waist Circumference (cm):", value = 90, min = 40, max = 250)
                 ),
                 box(title = "Glycemic & Renal Markers", status = "warning", solidHeader = TRUE, width = 4,
-                    numericInput("fbs", "Fasting Blood Sugar (mg/dL):", value = 140),
-                    numericInput("ppbs", "Post-Prandial Sugar (mg/dL):", value = 210),
-                    numericInput("hba1c", "HbA1c (%):", value = 7.5, step = 0.1),
-                    numericInput("scr", "Serum Creatinine (mg/dL):", value = 1.1, step = 0.1),
+                    numericInput("fbs", "Fasting Blood Sugar (mg/dL):", value = 140, min = 20, max = 1000),
+                    numericInput("hba1c", "HbA1c (%):", value = 7.5, min = 3, max = 20, step = 0.1),
+                    numericInput("scr", "Serum Creatinine (mg/dL):", value = 1.1, min = 0.1, max = 20, step = 0.1),
                     selectInput("diabetes", "Known Type 2 Diabetes?", choices = c("Yes", "No"))
                 ),
                 box(title = "Hepatic & Lipid Panel", status = "danger", solidHeader = TRUE, width = 4,
-                    numericInput("ast", "AST (U/L):", value = 40),
-                    numericInput("alt", "ALT (U/L):", value = 65),
-                    numericInput("tc", "Total Cholesterol (mg/dL):", value = 240),
-                    numericInput("tg", "Triglycerides (mg/dL):", value = 195),
-                    numericInput("hdl", "HDL Cholesterol (mg/dL):", value = 35),
-                    numericInput("ldl", "LDL Cholesterol (mg/dL):", value = 160)
+                    numericInput("ast", "AST (U/L):", value = 40, min = 1, max = 5000),
+                    numericInput("alt", "ALT (U/L):", value = 65, min = 1, max = 5000),
+                    numericInput("tc", "Total Cholesterol (mg/dL):", value = 240, min = 50, max = 1000),
+                    numericInput("tg", "Triglycerides (mg/dL):", value = 195, min = 10, max = 5000),
+                    numericInput("hdl", "HDL Cholesterol (mg/dL):", value = 35, min = 5, max = 200),
+                    numericInput("ldl", "LDL Cholesterol (mg/dL):", value = 160, min = 10, max = 800)
                 )
               ),
               fluidRow(
@@ -110,10 +113,10 @@ ui <- dashboardPage(
       ),
       
       # -----------------------------------------------------------
-      # TAB 4: Population Analytics (Thesis Data Simulation)
+      # TAB 4: Population Analytics (Synthetic Cohort)
       # -----------------------------------------------------------
       tabItem(tabName = "analytics",
-              h2("Population Cohort Analysis (N = 170)"),
+              h2("Synthetic Cohort Analysis (N = 170)"),
               fluidRow(
                 box(title = "Correlation Matrix (Lipids vs Hepatic Enzymes)", status = "primary", width = 6,
                     plotOutput("corr_plot", height = "400px")),
@@ -121,8 +124,8 @@ ui <- dashboardPage(
                     plotOutput("scatter_plot", height = "400px"))
               ),
               fluidRow(
-                box(title = "Simulated Patient Cohort Data", status = "info", width = 12,
-                    dataTableOutput("population_table"))
+                box(title = "Synthetic Patient Cohort Data (simulated - not real patients)", status = "info", width = 12,
+                    DTOutput("population_table"))
               )
       )
     )
@@ -130,171 +133,122 @@ ui <- dashboardPage(
 )
 
 # -----------------------------------------------------------------------------------------
-# SECTION 3: SERVER LOGIC & COMPUTATIONAL ENGINE
+# SECTION 3: SERVER LOGIC
 # -----------------------------------------------------------------------------------------
 server <- function(input, output, session) {
-  
-  # --- 3.1 Reactive Data Object for Computed Metrics ---
-  patient_data <- reactiveValues(
-    bmi = NULL, crcl = NULL, hsi = NULL, aip = NULL, ast_alt_ratio = NULL
-  )
-  
-  # --- 3.2 Master Computation Event ---
-  observeEvent(input$calc_btn, {
-    # 1. Calculate BMI
-    height_m <- input$height / 100
-    patient_data$bmi <- round(input$weight / (height_m^2), 2)
-    
-    # 2. Calculate Cockcroft-Gault CrCl
-    base_crcl <- ((140 - input$age) * input$weight) / (72 * input$scr)
-    patient_data$crcl <- ifelse(input$sex == "Female", round(base_crcl * 0.85, 2), round(base_crcl, 2))
-    
-    # 3. Calculate Hepatic Steatosis Index (HSI)
-    # Formula: 8 * (ALT/AST ratio) + BMI + (+2 if diabetes) + (+2 if female)
-    ratio <- input$alt / input$ast
-    patient_data$ast_alt_ratio <- round(1 / ratio, 2) # Storing AST/ALT for display
-    
-    hsi_base <- 8 * ratio + patient_data$bmi
-    hsi_diabetes <- ifelse(input$diabetes == "Yes", 2, 0)
-    hsi_sex <- ifelse(input$sex == "Female", 2, 0)
-    patient_data$hsi <- round(hsi_base + hsi_diabetes + hsi_sex, 2)
-    
-    # 4. Calculate Atherogenic Index of Plasma (AIP)
-    # Formula: Log10(TG / HDL)
-    patient_data$aip <- round(log10(input$tg / input$hdl), 3)
+
+  # --- 3.1 Snapshot of inputs + computed metrics, taken only when the button is pressed ---
+  # Medications and labs are captured together, so alerts can never mix a stale result with
+  # edited inputs.
+  results <- eventReactive(input$calc_btn, {
+    patient <- list(
+      age = input$age, sex = input$sex, weight = input$weight, height = input$height,
+      waist = input$waist, scr = input$scr, diabetes = input$diabetes,
+      ast = input$ast, alt = input$alt, tc = input$tc, tg = input$tg,
+      hdl = input$hdl, ldl = input$ldl, hba1c = input$hba1c, fbs = input$fbs
+    )
+    problems <- validate_patient(patient)
+    if (length(problems) > 0) {
+      return(list(ok = FALSE, problems = problems))
+    }
+    metrics <- compute_metrics(patient)
+    list(ok = TRUE, patient = patient, meds = input$meds, metrics = metrics,
+         alerts = screen_medications(patient, input$meds, metrics))
   })
-  
-  # --- 3.3 Dynamic ValueBox Rendering ---
+
+  # Stops an output with a readable message until a valid calculation exists.
+  valid_results <- function() {
+    res <- results()
+    validate(need(res$ok, paste(c("Please correct the following inputs:", res$problems), collapse = "\n")))
+    res
+  }
+
+  # --- 3.2 Dynamic ValueBox Rendering ---
   output$bmi_box <- renderValueBox({
-    req(patient_data$bmi)
-    status_col <- ifelse(patient_data$bmi >= 30, "red", ifelse(patient_data$bmi >= 25, "yellow", "green"))
-    valueBox(patient_data$bmi, "Body Mass Index (BMI)", icon = icon("weight"), color = status_col)
+    m <- valid_results()$metrics
+    valueBox(m$bmi, "Body Mass Index (BMI)", icon = icon("weight"), color = classify_bmi(m$bmi))
   })
-  
+
   output$crcl_box <- renderValueBox({
-    req(patient_data$crcl)
-    status_col <- ifelse(patient_data$crcl < 30, "red", ifelse(patient_data$crcl < 60, "yellow", "green"))
-    valueBox(patient_data$crcl, "CrCl (mL/min)", icon = icon("kidneys", lib="font-awesome"), color = status_col)
+    m <- valid_results()$metrics
+    valueBox(m$crcl, "CrCl (mL/min)", icon = icon("filter"), color = classify_crcl(m$crcl))
   })
-  
+
   output$hsi_box <- renderValueBox({
-    req(patient_data$hsi)
-    status_col <- ifelse(patient_data$hsi > 36, "red", "green")
-    valueBox(patient_data$hsi, "Hepatic Steatosis Index", icon = icon("procedures"), color = status_col)
+    m <- valid_results()$metrics
+    valueBox(m$hsi, "Hepatic Steatosis Index", icon = icon("procedures"), color = classify_hsi(m$hsi))
   })
-  
+
   output$aip_box <- renderValueBox({
-    req(patient_data$aip)
-    status_col <- ifelse(patient_data$aip > 0.24, "red", ifelse(patient_data$aip > 0.11, "yellow", "green"))
-    valueBox(patient_data$aip, "Atherogenic Index (AIP)", icon = icon("heartbeat"), color = status_col)
+    m <- valid_results()$metrics
+    valueBox(m$aip, "Atherogenic Index (AIP)", icon = icon("heartbeat"), color = classify_aip(m$aip))
   })
-  
-  # --- 3.4 Clinical Interpretation Text ---
+
+  # --- 3.3 Clinical Interpretation Text ---
   output$clinical_summary <- renderUI({
-    req(patient_data$hsi)
-    str1 <- paste("<b>Hepatic Risk:</b> An HSI > 36 highly indicates the presence of Non-Alcoholic Fatty Liver Disease (NAFLD). Patient HSI is", patient_data$hsi)
-    str2 <- paste("<b>Cardiovascular Risk:</b> An AIP > 0.24 indicates high risk for atherosclerosis. Patient AIP is", patient_data$aip)
-    str3 <- paste("<b>Renal Function:</b> Calculated Cockcroft-Gault clearance is", patient_data$crcl, "mL/min.")
-    HTML(paste(str1, str2, str3, sep = "<br/><br/>"))
+    res <- valid_results()
+    m <- res$metrics
+    p <- res$patient
+
+    hsi_text <- if (m$hsi > 36) "suggests hepatic steatosis (NAFLD/MASLD) is likely"
+                else if (m$hsi < 30) "makes hepatic steatosis unlikely"
+                else "is indeterminate (30-36)"
+    aip_text <- if (m$aip > 0.24) "high" else if (m$aip > 0.11) "intermediate" else "low"
+
+    items <- list(
+      sprintf("<b>Hepatic Risk:</b> HSI is %s, which %s (HSI &gt; 36 rules in, &lt; 30 rules out). AST/ALT ratio is %s.",
+              m$hsi, hsi_text, m$ast_alt),
+      sprintf("<b>Cardiovascular Risk:</b> AIP is %s (%s risk; &gt; 0.24 is high). Non-HDL cholesterol is %s mg/dL.",
+              m$aip, aip_text, m$non_hdl),
+      sprintf("<b>Renal Function:</b> Cockcroft-Gault clearance is %s mL/min.", m$crcl),
+      sprintf("<b>Central Adiposity:</b> Waist-to-height ratio is %s (&gt; 0.5 indicates increased cardiometabolic risk).",
+              m$whtr)
+    )
+    if (p$diabetes == "No" && (p$hba1c >= 6.5 || p$fbs >= 126)) {
+      items <- c(items, "<b>Glycemic Note:</b> Diabetes is recorded as 'No', but HbA1c &ge; 6.5% or fasting glucose &ge; 126 mg/dL is in the diabetic range. Please verify the diagnosis.")
+    }
+    HTML(paste(items, collapse = "<br/><br/>"))
   })
-  
-  # --- 3.5 Automated Pharmacovigilance Rules Engine ---
+
+  # --- 3.4 Pharmacovigilance Alerts ---
   output$safety_alerts <- renderUI({
-    req(input$calc_btn)
-    alerts <- c()
-    
-    meds <- input$meds
-    
-    # Rule 1: Metformin + Renal Impairment
-    if ("Metformin" %in% meds && patient_data$crcl < 30) {
-      alerts <- c(alerts, "<div class='alert alert-danger'><b>❌ METFORMIN CONTRAINDICATION:</b> CrCl is below 30 mL/min. High risk of lactic acidosis. Discontinue immediately.</div>")
-    } else if ("Metformin" %in% meds && patient_data$crcl < 45) {
-      alerts <- c(alerts, "<div class='alert alert-warning'><b>⚠️ METFORMIN WARNING:</b> CrCl is 30-45 mL/min. Max dose is 1000 mg/day. Review required.</div>")
+    res <- valid_results()
+    alerts <- res$alerts
+    if (nrow(alerts) == 0) {
+      return(tags$div(class = "alert alert-success",
+                      "No critical drug-disease or drug-drug interactions detected based on current parameters."))
     }
-    
-    # Rule 2: Statins + Hepatic Transaminase Elevation
-    if ("Atorvastatin" %in% meds && (input$ast > 120 || input$alt > 120)) {
-      alerts <- c(alerts, "<div class='alert alert-danger'><b>❌ STATIN HEPATOTOXICITY RISK:</b> Transaminases are >3x Upper Limit of Normal. Withhold statin and evaluate hepatic architecture.</div>")
-    }
-    
-    # Rule 3: Geriatric Prescribing Cascades (Donepezil + Oxybutynin)
-    if ("Donepezil" %in% meds && "Oxybutynin" %in% meds) {
-      alerts <- c(alerts, "<div class='alert alert-danger'><b>❌ PHARMACODYNAMIC ANTAGONISM:</b> Donepezil (AChEI) combined with Oxybutynin (Anticholinergic). Drugs directly cancel out cognitive and bladder benefits.</div>")
-    }
-    
-    # Rule 4: NSAID + Amlodipine Cascade Risk
-    if ("Ibuprofen" %in% meds && "Amlodipine" %in% meds) {
-      alerts <- c(alerts, "<div class='alert alert-warning'><b>⚠️ PRESCRIBING CASCADE RISK:</b> NSAIDs can elevate blood pressure. Ensure Amlodipine was not added to treat NSAID-induced hypertension.</div>")
-    }
-    
-    if (length(alerts) == 0) {
-      HTML("<div class='alert alert-success'>✅ No critical drug-disease or drug-drug interactions detected based on current parameters.</div>")
-    } else {
-      HTML(paste(alerts, collapse = ""))
-    }
+    tagList(lapply(seq_len(nrow(alerts)), function(i) {
+      tags$div(class = paste("alert", paste0("alert-", alerts$severity[i])),
+               tags$b(paste0(alerts$title[i], ":")), " ", alerts$message[i])
+    }))
   })
-  
-  # --- 3.6 Advanced Population Simulation (Based on N=170 Thesis Data) ---
-  simulate_population <- reactive({
-    set.seed(123)
-    # Simulating 95 Cases (Elevated Lipids) and 75 Controls (Normal)
-    n_cases <- 95
-    n_controls <- 75
-    
-    cases <- data.frame(
-      Group = "Cases",
-      Age = round(rnorm(n_cases, 55, 10)),
-      BMI = round(rnorm(n_cases, 30.5, 4.9), 1),
-      FBS = round(rnorm(n_cases, 217.8, 41.8)),
-      TC = round(rnorm(n_cases, 264, 28.4)),
-      TG = round(rnorm(n_cases, 195.2, 40.6)),
-      LDL = round(rnorm(n_cases, 168.5, 29.3)),
-      ALT = round(rnorm(n_cases, 66.0, 41.0)),
-      AST = round(rnorm(n_cases, 40.1, 25.1))
-    )
-    
-    controls <- data.frame(
-      Group = "Controls",
-      Age = round(rnorm(n_controls, 45, 10)),
-      BMI = round(rnorm(n_controls, 24.5, 2.2), 1),
-      FBS = round(rnorm(n_controls, 185.3, 28.5)),
-      TC = round(rnorm(n_controls, 176.6, 23.8)),
-      TG = round(rnorm(n_controls, 151.0, 37.0)),
-      LDL = round(rnorm(n_controls, 103.9, 22.3)),
-      ALT = round(rnorm(n_controls, 25.1, 26.9)),
-      AST = round(rnorm(n_controls, 18.8, 14.9))
-    )
-    
-    bind_rows(cases, controls) %>% filter(Age > 18, BMI > 15)
-  })
-  
-  # --- 3.7 Visualizations ---
+
+  # --- 3.5 Synthetic Population ---
+  # Generated once per session (deterministic seed) rather than re-simulated per output.
+  population <- reactive(simulate_population())
+
   output$corr_plot <- renderPlot({
-    df <- simulate_population()
-    # Select continuous variables for correlation
-    numeric_df <- df %>% select(BMI, FBS, TC, TG, LDL, ALT, AST)
-    corr_matrix <- cor(numeric_df, use = "complete.obs")
-    corrplot(corr_matrix, method = "color", type = "upper", 
+    numeric_df <- population()[, c("BMI", "FBS", "TC", "TG", "LDL", "ALT", "AST")]
+    corrplot(cor(numeric_df, use = "complete.obs"), method = "color", type = "upper",
              addCoef.col = "black", tl.col = "darkblue", tl.srt = 45,
-             title = "Pearson Correlation of Metabolic Parameters", mar=c(0,0,1,0))
+             title = "Pearson Correlation of Metabolic Parameters", mar = c(0, 0, 1, 0))
   })
-  
+
   output$scatter_plot <- renderPlot({
-    df <- simulate_population()
-    ggplot(df, aes(x = BMI, y = LDL, color = Group)) +
+    ggplot(population(), aes(x = BMI, y = LDL, color = Group)) +
       geom_point(alpha = 0.6, size = 3) +
-      geom_smooth(method = "lm", se = TRUE) +
+      geom_smooth(method = "lm", formula = y ~ x, se = TRUE) +
       scale_color_manual(values = c("Cases" = "red", "Controls" = "green4")) +
-      labs(title = "Linear Regression: BMI vs. LDL Cholesterol",
-           x = "Body Mass Index (kg/m²)", y = "LDL-C (mg/dL)") +
+      labs(title = "Linear Regression: BMI vs. LDL Cholesterol (synthetic data)",
+           x = "Body Mass Index (kg/m\u00b2)", y = "LDL-C (mg/dL)") +
       theme_minimal() +
       theme(text = element_text(size = 14))
   })
-  
-  output$population_table <- renderDataTable({
-    datatable(simulate_population(), options = list(pageLength = 5, scrollX = TRUE))
+
+  output$population_table <- renderDT({
+    datatable(population(), rownames = FALSE, options = list(pageLength = 5, scrollX = TRUE))
   })
-  
 }
 
 # -----------------------------------------------------------------------------------------

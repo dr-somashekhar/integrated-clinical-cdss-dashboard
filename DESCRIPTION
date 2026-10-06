@@ -1,0 +1,15 @@
+Package: clinicalcdss
+Title: Integrated Clinical Decision Support System (T2DM Cardiometabolic and Hepatic Risk)
+Version: 1.1.0
+Description: R Shiny dashboard computing BMI, Cockcroft-Gault CrCl, Hepatic Steatosis
+    Index and Atherogenic Index of Plasma, with a medication safety rules engine.
+    This file only declares dependencies (install with remotes::install_deps()).
+License: MIT + file LICENSE
+Imports:
+    shiny,
+    shinydashboard,
+    ggplot2,
+    corrplot,
+    DT
+Suggests:
+    testthat
